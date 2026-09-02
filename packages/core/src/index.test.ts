@@ -11,7 +11,7 @@ describe('defineKit', () => {
   })
 })
 
-describe('vERSION', () => {
+describe('版本号常量', () => {
   it('是字符串', () => {
     expect(typeof VERSION).toBe('string')
   })

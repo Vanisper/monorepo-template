@@ -220,7 +220,7 @@ Biome   ── 单二进制、lint+format 一体
 组合替代关系说明：
 - **组合 A 的核心逻辑**：ESLint 是当前唯一「全场景生产就绪」的引擎——插件生态完整、Vue/Svelte/Astro template lint 成熟；配合 `@antfu/eslint-config` 预设几乎零配置
 - **组合 B 何时启用**：oxfmt GA 后，追求极致性能时
-- **组合 C 的评价**：Biome 的「单二进制、职责内聚」哲学很理想，但当前时点有两个硬伤——Vue/Svelte/Astro 支持为 🟡 experimental（template lint 未生产就绪）、与 ESLint 生态互不相通，对本模板「纯 TS 库但可能扩展 .vue」的场景来说不是稳妥选择
+- **组合 C 的评价**：Biome 的「单二进制、职责内聚」哲学很理想，但生不逢时——oxc（VoidZero/Vite 团队，tsdown/Rolldown 官方背景）同为单二进制、高性能竞品且势头更猛（type-aware lint 已稳定、oxfmt 已达 beta，同为「单二进制 + 高性能」定位的竞品且势头更猛；加上 Vue/Svelte/Astro template 支持为 🟡 experimental、无插件系统、与 ESLint 生态互不相通，对本模板「纯 TS 库但可能扩展 .vue」的场景不是稳妥选择
 - Commit 职责始终是 commitlint，与前三者完全解耦；Hooks 职责两个实现（lefthook / simple-git-hooks+lint-staged）对任何 Lint 引擎通用
 
 ---

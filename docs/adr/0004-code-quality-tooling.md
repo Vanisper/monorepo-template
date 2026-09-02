@@ -25,7 +25,7 @@ monorepo-template 需要一套编码规范工具链，涵盖 Lint、Format、Hoo
 |---|---|---|
 | **ESLint + @antfu/eslint-config** | lint 引擎 + 规则预设 | ✅ 选用：ESLint 是当前唯一全场景生产就绪的 lint 引擎（Vue/Svelte/Astro template lint 成熟、插件生态完整） |
 | oxlint + tsgolint | 性能向 linter | ❌ type-aware 已稳，但 oxfmt 未 GA，且与 ESLint 生态互不相通 |
-| Biome | 单二进制 lint+format 一体 | ❌ 生不逢时：Vue/Svelte/Astro 支持为 🟡 experimental、无插件系统、与 ESLint 生态互不相通 |
+| Biome | 单二进制 lint+format 一体 | ❌ 生不逢时：oxc（VoidZero/Vite 团队）同为单二进制、高性能竞品且势头更猛，加上 Vue/Svelte/Astro template 支持为 🟡 experimental、无插件系统、与 ESLint 生态互不相通 |
 | simple-git-hooks + lint-staged | 两个 JS 依赖 | ❌ lefthook 一个 Go 二进制覆盖 hooks + staged 过滤，依赖更少 |
 | commitlint | commit 规范 | ✅ 选用：共享 cz-git 配置、中文交互、type-enum 扩展 |
 

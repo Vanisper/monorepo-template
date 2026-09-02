@@ -2,7 +2,6 @@ pre-commit:
   commands:
     lint:
       glob: '*.{js,mjs,ts,json,jsonc,yaml,yml,toml,md}'
-      staged_files: true
       run: pnpm eslint --fix {staged_files}
 commit-msg:
   commands:

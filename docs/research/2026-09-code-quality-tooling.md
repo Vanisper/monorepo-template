@@ -127,7 +127,7 @@
 要点：
 - **simple-git-hooks + lint-staged** 是 antfu config README 官方示例组合（`"pre-commit": "pnpm lint-staged"`）。来源：[antfu/eslint-config Lint Staged 章节](https://github.com/antfu/eslint-config)。
 - husky 认知度高但已一年多无发版，且引入 `.husky/` 目录与 `prepare` 脚本的开销；simple-git-hooks 同等能力零依赖。
-- **lefthook 一个工具覆盖「钩子管理 + staged 文件过滤」两件事**（内置 `glob` / `staged_files`，即 lint-staged 的核心能力）：
+- **lefthook 一个工具覆盖「钩子管理 + staged 文件过滤」两件事**（`glob` 配置 + `{staged_files}` 占位符，即 lint-staged 的核心能力）：
   - 「simple-git-hooks + lint-staged 两个 JS 依赖」可合并为「lefthook 一个 Go 二进制」，依赖数从 2 减到 1
   - 配置从 package.json 两处（`simple-git-hooks` + `lint-staged` 两处配置）收敛为一份 `lefthook.yml`
   - Go 二进制与 Node 生态解耦、支持并行/分组
@@ -275,7 +275,6 @@ ESLint 是当前唯一「全场景生产就绪」的 lint 引擎（Vue/Svelte/As
      commands:
        lint:
          glob: '*.{js,mjs,ts,json,jsonc,yaml,yml,toml,md}'
-         staged_files: true
          run: pnpm eslint --fix {staged_files}
    commit-msg:
      commands:
@@ -292,7 +291,7 @@ ESLint 是当前唯一「全场景生产就绪」的 lint 引擎（Vue/Svelte/As
    pnpm exec commitlint --from origin/main --to HEAD   # 如需在 CI 校验 PR 内 commit
    ```
 
-6. **预提交钩子是否必要**：必要且代价极低。lefthook 的 `staged_files` 过滤 + `eslint --fix` 顺手完成格式化；commit-msg 校验拦截不规范 message。钩子合计通常 < 2s，不成为提交摩擦。
+6. **预提交钩子是否必要**：必要且代价极低。lefthook 的 `{staged_files}` 占位符只传匹配的 staged 文件给 `eslint --fix`，顺手完成格式化；commit-msg 校验拦截不规范 message。钩子合计通常 < 2s，不成为提交摩擦。
 
 ### 组合 B（次选/性能向）：oxlint(+tsgolint) + oxfmt + lefthook + commitlint
 

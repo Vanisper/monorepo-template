@@ -16,6 +16,7 @@
     "tag": "changeset tag",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "spell": "cspell .",
     "commitlint": "commitlint --edit"
   },
   "//": {
@@ -26,6 +27,7 @@
     "@changesets/cli": "catalog:workspace",
     "@commitlint/cli": "catalog:commit",
     "@commitlint/config-conventional": "catalog:commit",
+    "cspell": "catalog:lint",
     "eslint": "catalog:lint",
     "lefthook": "catalog:hooks",
     "turbo": "catalog:workspace"

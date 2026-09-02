@@ -31,6 +31,7 @@ catalogs:
     lefthook: ^2.1.12
   lint:
     '@antfu/eslint-config': ^9.5.1
+    cspell: ^10.2.0
     eslint: ^10.9.1
   test:
     vitest: ^4.1.11

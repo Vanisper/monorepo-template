@@ -85,6 +85,8 @@ turbo 的任务依赖拓扑定义在根 `turbo.json`：
 | ESLint + @antfu/eslint-config | lint + 格式化（@stylistic，免 Prettier） | 根 `eslint.config.mjs` |
 | lefthook | Git hooks（pre-commit / commit-msg / pre-push） | 根 `lefthook.yml` |
 | commitlint | commit message 规范（共享 cz-git 配置） | 根 `.commitlintrc.yaml` |
+| cspell | 拼写检查 | 根 `cspell.json` |
+
 ### Hooks 工作流
 
 ```yaml

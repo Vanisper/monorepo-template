@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "language": "en",
+  "ignorePaths": [
+    "node_modules/**",
+    "dist/**",
+    "pnpm-lock.yaml",
+    "docs/research/**"
+  ],
+  "words": [
+    "tsdown",
+    "tsgolint",
+    "tsgo",
+    "oxlint",
+    "oxfmt",
+    "lefthook",
+    "publint",
+    "attw",
+    "arethetypeswrong",
+    "vitest",
+    "pnpm",
+    "commitlint",
+    "commitlintrc",
+    "changesets",
+    "antfu",
+    "tsconfig",
+    "mkdist",
+    "unjs",
+    "bumpp"
+  ]
+}

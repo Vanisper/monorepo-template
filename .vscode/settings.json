@@ -1,0 +1,17 @@
+{
+  "yaml.schemas": {
+    "https://json.schemastore.org/pnpm-workspace.json": ["pnpm-workspace.yaml"],
+    "https://json.schemastore.org/commitlintrc.json": [
+      ".commitlintrc.yaml",
+      ".commitlintrc.yml"
+    ],
+    "https://json.schemastore.org/lefthook.json": [
+      "lefthook.yml",
+      "lefthook.yaml"
+    ],
+    "https://json.schemastore.org/github-workflow.json": [
+      ".github/workflows/*.yml",
+      ".github/workflows/*.yaml"
+    ]
+  }
+}

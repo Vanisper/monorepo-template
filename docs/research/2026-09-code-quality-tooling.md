@@ -318,6 +318,18 @@ Biome   ── 单二进制、lint+format 一体
 
 ---
 
+## 附二：官方规则与支持列表索引
+
+以下链接为各工具的官方规则列表与「语言/框架支持度」文档，供查证具体某条规则是否被支持时使用：
+
+| 工具 | 规则列表 | 支持度/兼容性 |
+|---|---|---|
+| ESLint | [Rules](https://eslint.org/docs/latest/rules/) + [typescript-eslint Rules](https://typescript-eslint.io/rules/) | — |
+| @antfu/eslint-config | —（preset，规则即 ESLint 生态） | [GitHub README](https://github.com/antfu/eslint-config) |
+| oxlint | [Rules 列表](https://oxc.rs/docs/guide/usage/linter/rules.html) | [框架兼容性](https://oxc.rs/compatibility.html)（含 Vue/Svelte/Astro template linting 进度） |
+| Biome | [Rules 列表](https://biomejs.dev/linter/) | [Language Support](https://biomejs.dev/internals/language-support/) |
+| Prettier | —（无规则概念） | [Plugins](https://prettier.io/docs/en/plugins/) |
+
 ## 附：版本快照（2026-09-03，npm registry dist-tags）
 
 | 包 | latest | 发布日期 |

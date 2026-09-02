@@ -23,6 +23,7 @@ docs/
 | `add-package.md` | ✅ 已完成 | 新增子包的标准步骤：建目录、package.json 模板（exports / files / publishConfig）、tsconfig 继承 base、tsdown 配置、catalog 引用、turbo 任务自动生效；以 `@mono/core` 为参照 |
 | `dependency-management.md` | ✅ 已完成 | catalog 治理规则：什么依赖进 catalog、workspace:* 引用内部包、如何升级共享依赖；pnpm 常用命令（`pnpm why` / `--filter`） |
 | `versioning.md` | ✅ 已完成 | Changesets 分步工作流：`changeset` → `version` → `tag`；内部自治包不发 npm 的用法；恢复 `publish:npm` 的条件与步骤；`fixed`/`linked` 版本策略何时启用 |
+| `ci.md` | ✅ 已完成 | CI 工作流：触发条件、流水线结构、各步骤说明、设计要点 |
 
 ### adr/ 技术决策记录
 
@@ -54,5 +55,5 @@ docs/
 
 ## 后续可选
 
-- 根 README.md：模板项目对外的门面，等 guide 稳定后回头补，内容从 guide 摘编 + 快速开始
-- CI 工作流文档（接 GitHub Actions 后补充）
+- ✅ 根 README.md：模板项目对外的门面
+- ✅ CI 工作流文档：`guide/ci.md`

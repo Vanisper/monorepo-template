@@ -1,0 +1,286 @@
+# 编码规范 / 代码质量工具链选型调研（Lint / Format / Hooks / Commit）
+
+> 调研日期：2026-09-03。结论以各工具官方文档、GitHub 仓库与官方 blog 为准，附来源链接。
+> 背景：为「前端单仓多库（monorepo）模板项目」补充编码规范工具链。模板现状：pnpm 11 workspaces + catalogs、Turborepo 2、tsdown、Changesets v3、Vitest 4，Node ≥ 22.18，纯 TS 库定位，内部使用。
+
+---
+
+## 〇、2025–2026 年生态大背景
+
+- **ESLint v10 于 2026-02-06 正式发布**（当前 10.9.1，2026-08-24）。eslintrc 体系被彻底移除（`.eslintrc.*`、`.eslintignore` 不再生效），flat config 成为唯一配置形态；配置查找改为「从被 lint 文件所在目录向上查找」，天然利好 monorepo 多配置；要求 Node `^20.19.0 || ^22.13.0 || >=24`。来源：[ESLint v10.0.0 released](https://eslint.org/blog/2026/02/eslint-v10.0.0-released/)、[What's coming in ESLint v10.0.0](https://eslint.org/blog/2025/10/whats-coming-in-eslint-10.0.0/)。
+- **oxc 系全面成熟**：oxlint 1.x 稳定版（当前 1.81.0）规则总数达 870+；**类型感知 lint 于 2026-07-22 宣布稳定**（tsgolint v7，基于 tsgo，覆盖 typescript-eslint 61 条 type-aware 规则中的 59 条）；oxfmt 于 2026-02-24 达到 beta（100% 通过 Prettier 的 JS/TS 一致性测试），尚未 GA。来源：[Type-Aware Linting Stable](https://oxc.rs/blog/2026-07-22-type-aware-linting-stable)、[Oxfmt Beta](https://oxc.rs/blog/2026-02-24-oxfmt-beta)、[oxlint rules](https://oxc.rs/docs/guide/usage/linter/rules.html)。
+- **Biome v2（codename Biotype）2025-06 发布**（当前 2.5.11，2026-08-27），提供了不依赖 TypeScript 编译器的 type-aware lint；v2.3（2025-10）起完整支持 Vue / Svelte / Astro。来源：[Biome v2](https://biomejs.dev/blog/biome-v2/)、[Biome v2.3](https://biomejs.dev/blog/biome-v2-3/)。
+- **Prettier 3.9（2026-06）** 持续活跃（当前 3.9.6），社区地位稳固但面临 oxfmt / Biome 的性能挑战。来源：[Prettier 3.9 blog](https://prettier.io/blog/2026/06/27/3.9.0)。
+- **Cloudflare 2026-06 收购 VoidZero**（Vite / Vitest / Rolldown / Oxc 的母公司），oxc 系的长期投入有背书。来源见同目录 `2026-09-monorepo-tech-selection.md`。
+
+---
+
+## 一、Lint 工具
+
+### 1.1 现状速览
+
+| 工具 | 最新版本（2026-09-03） | 定位 | 维护状态 |
+|---|---|---|---|
+| ESLint | 10.9.1 | 生态基准，插件体系最完整 | ✅ 活跃（OpenJSF） |
+| typescript-eslint | 8.69.0（monorepo 单版本线 v8.x） | ESLint 的 TS 解析 + TS 专属规则（含 type-aware） | ✅ 活跃，已支持 ESLint 10 |
+| @antfu/eslint-config | 9.5.1 | antfu 的 opinionated flat config 预设（含格式化职责，可免 Prettier） | ✅ 非常活跃（2026-09-02 刚发版） |
+| oxlint (+oxlint-tsgolint) | 1.81.0 / 7.0.2001 | Rust 超高速 linter；type-aware 走 tsgo 的 tsgolint | ✅ 活跃（VoidZero/oxc） |
+| Biome | 2.5.11 | Rust linter + formatter 一体 | ✅ 活跃（Biome 社区） |
+
+### 1.2 对比表
+
+| 维度 | ESLint(+typescript-eslint) | @antfu/eslint-config | oxlint + tsgolint | Biome linter |
+|---|---|---|---|---|
+| 规则覆盖 | 核心 ~300 条 + 插件 10,000+；TS 专属规则最全 | 基于 ESLint 全家桶精选（js/ts/vue/jsonc/yaml/toml/md/unicorn 等），开箱即用 | 870+ 条（含 ESLint core、typescript、unicorn、import、jsdoc、react、vitest 等移植）；type-aware 59/61 | ~400+ 条，含不依赖 tsc 的 type-aware 规则 |
+| type-aware 规则 | ✅ 完整（typescript-eslint，基于 tsc 类型服务，慢） | ✅ 可选开启（`typescript: { tsconfigPath }`） | ✅ 2026-07 稳定，`--type-aware` 调用 tsgolint（tsgo），比 typescript-eslint 快约 1–2 个数量级；可加 `--type-check` 顺带报 TS 编译错误 | ✅ v2 起内置（自研类型推断，不依赖 tsc，覆盖尚不及 typescript-eslint） |
+| 性能 | 基准（大仓库十秒级以上） | 同 ESLint | 约 50–100× ESLint，亚秒级 | 约 25× ESLint |
+| 插件生态 | ✅ 完整（最大资产） | ✅ 即 ESLint 生态 | ⚠️ 规则内置 + 配置兼容 ESLint 插件规则名，无运行时插件机制（规划中） | ❌ 暂无插件系统（2026 路线图中有计划） |
+| 配置成本 | 高（手写 flat config） | 极低（一行 `antfu()`），且内置 pnpm catalog 规则 | 低（`.oxlintrc.json`，可零配置） | 低（`biome.json`） |
+| monorepo 集成 | ESLint 10 起按文件就近找配置，root 一份或多份皆可 | 同左；自带 `pnpm/json-enforce-catalog` 等规则，与 pnpm catalog 绝配 | 支持嵌套 `.oxlintrc.json`；`--type-aware` 依赖 tsconfig 布局 | 支持嵌套 `biome.json` |
+| 与 ESLint 的关系 | — | 是 ESLint 配置 | 互补：官方提供 eslint-plugin-oxlint 关停被覆盖的 ESLint 规则，常组合使用 | 替代品 |
+
+来源：[oxlint 文档](https://oxc.rs/docs/guide/usage/linter)、[oxlint type-aware 文档](https://oxc.rs/docs/guide/usage/linter/type-aware.html)、[@antfu/eslint-config](https://github.com/antfu/eslint-config)、[Biome v2 blog](https://biomejs.dev/blog/biome-v2/)。
+
+### 1.3 各工具要点
+
+**ESLint v10** —— 生态基准，不可回避。
+- flat config 唯一化；`eslint.config.*` 从被检查文件所在目录向上查找，monorepo 中「root 一份全局配置」或「各包就近配置」都自然成立。
+- typescript-eslint v8.x 已跟进支持 ESLint 10（社区 lockfile 可见 `@typescript-eslint/*@8.66+` 搭配 `eslint@10.8`）。type-aware lint 正确性最好，但速度是明显短板（typescript-eslint 需跑 TS 类型服务）。
+
+**@antfu/eslint-config** —— 对 antfu 生态偏好者的「一行接入」方案。
+- 开箱覆盖 JS/TS/Vue/JSONC/YAML/TOML/Markdown，内置 `@stylistic` 风格规则 + import 排序，**设计上即「不用 Prettier」**（格式化由 ESLint fix 完成）。
+- 内置 eslint-plugin-pnpm，含 `pnpm/json-enforce-catalog`、`pnpm/json-valid-catalog` 等规则——与本模板的 catalog 治理策略直接契合。
+- 自带 vitest 规则（`@vitest/eslint-plugin`）、sortPackageJson、sortTsconfig 等，均为本模板用得上的能力。
+- 注意：这是 **antfu 个人化预设**，README 明示升级时应 review 规则变化（不视为 breaking change）；可选 type-aware（`typescript: { tsconfigPath: ... }`）；格式化 CSS/HTML/MD 需另开 `formatters` 选项（底层走 Prettier/dprint）。来源：[antfu/eslint-config README](https://github.com/antfu/eslint-config)。
+
+**oxlint + tsgolint** —— 性能向首选，type-aware 已稳定。
+- `pnpm add -D oxlint oxlint-tsgolint@7 && oxlint --type-aware` 即可启用；59/61 type-aware 规则覆盖意味着 `no-floating-promises`、`no-unsafe-*` 家族等关键规则齐全。
+- 社区实测 type-aware 模式 ~2.8s vs ESLint 同类规则 ~135s。来源：[unraid/js-standards 实测](https://github.com/unraid/js-standards)、[Type-Aware Linting Stable](https://oxc.rs/blog/2026-07-22-type-aware-linting-stable)。
+- 短板：没有 ESLint 式插件运行时，生态长尾规则（如某些团队自研规则）仍需 ESLint；antfu config 作者也明确表示在等 oxlint 集成的阻塞项解决。来源：[antfu/eslint-config FAQ](https://github.com/antfu/eslint-config)。
+
+**Biome** —— 一体化但生态隔离。
+- linter + formatter + import 排序一个二进制搞定，Vue/Svelte/Astro 全支持，配置极简。
+- 短板：无插件系统，规则不可扩展；与 ESLint 生态互不相通，对「antfu 生态偏好」的用户意味着放弃整个 ESLint 插件资产。来源：[Biome Roadmap 2026](https://biomejs.dev/blog/roadmap-2026/)。
+
+---
+
+## 二、格式化工具
+
+### 2.1 对比表
+
+| 维度 | Prettier | Biome formatter | oxfmt |
+|---|---|---|---|
+| 最新版本 | 3.9.6 | 2.5.11 | 0.66.0（**beta，未 GA**） |
+| 速度 | 基准 | ~3× Prettier | **30×+ Prettier，3× Biome** |
+| JS/TS/JSX | ✅ | ✅ | ✅（100% 通过 Prettier JS/TS 一致性测试） |
+| Vue / Svelte | ✅（Vue 官方插件） | ✅（2.3 起） | ✅（Vue；Svelte 不在官方列表中） |
+| 其他文件 | MD/YAML/CSS/GraphQL 等 + 丰富插件（如 tailwindcss 排序） | CSS/GraphQL 等（2.x 默认开启） | MD/YAML/TOML/HTML/CSS/GraphQL 等全内置；**内置 Tailwind 类排序、import 排序、package.json 排序** |
+| 配置量 | 中（.prettierrc + 插件） | 低（biome.json 一处） | 低；提供 `--migrate prettier` / `--migrate biome` 一键迁移 |
+| 与 lint 组合 | 与 ESLint 需 eslint-config-prettier 解冲突 | 与 Biome linter 一体 | 与 oxlint 同生态（VoidZero）；配 antfu config 时其 formatters 选项仍走 Prettier/dprint |
+
+来源：[Oxfmt Beta](https://oxc.rs/blog/2026-02-24-oxfmt-beta)、[Prettier 3.9](https://prettier.io/blog/2026/06/27/3.9.0)、[Biome v2](https://biomejs.dev/blog/biome-v2/)、[oxfmt npm](https://www.npmjs.com/package/oxfmt)。
+
+### 2.2 结论
+
+- **oxfmt 尚未 GA（2026-02 达 beta，当前 0.x）**，但已被 vuejs/core、vercel/turborepo、sentry 等采用，且对 Prettier 行为完全兼容（官方与 Prettier 团队协同收敛差异）。追求性能可先行试用；追求稳妥则仍用 Prettier，后续 `oxfmt --migrate prettier` 平滑切换。
+- antfu 路线下 **JS/TS 格式化可直接交给 ESLint（`@stylistic`）**，不引入独立 formatter；仅 CSS/HTML/MD 等用 `formatters` 选项或 Prettier 兜底。这是三套方案里依赖最少的一条路。
+
+---
+
+## 三、Git hooks + 增量检查
+
+| 工具 | 最新版本 | 实现 | 特点 |
+|---|---|---|---|
+| simple-git-hooks | 2.14.0 | JS，零依赖 | 配置写 package.json，极简；无 `core.hooksPath` 之外的魔法；antfu 生态常用 |
+| husky | 9.1.7（2024-11 后未发版） | JS | 生态认知度最高，`.husky/` 目录式；功能稳定但近年近乎停更 |
+| lefthook | 2.1.12 | Go 单二进制 | 并行执行、按文件分组、配置在 `lefthook.yml`；快且活跃，依赖与 Node 无关 |
+
+| 增量检查 | 最新版本 | 说明 |
+|---|---|---|
+| lint-staged | 17.4.1 | 对 staged 文件跑任意命令；与上述三者任意组合；标准用法 |
+
+要点：
+- **simple-git-hooks + lint-staged** 是 antfu config README 官方示例组合（`"pre-commit": "pnpm lint-staged"`）。来源：[antfu/eslint-config Lint Staged 章节](https://github.com/antfu/eslint-config)。
+- husky 认知度高但已一年多无发版，且引入 `.husky/` 目录与 `prepare` 脚本的开销；simple-git-hooks 同等能力零依赖。
+- **lefthook 一个工具覆盖「钩子管理 + staged 文件过滤」两件事**（内置 `glob` / `staged_files`，即 lint-staged 的核心能力），「simple-git-hooks + lint-staged 两个 JS 依赖」可合并为「lefthook 一个 Go 二进制」，配置从 package.json 两处（`simple-git-hooks` + `lint-staged` 两处配置）收敛为一份 `lefthook.yml`，依赖数从 2 减到 1；且 Go 二进制与 Node 生态解耦、支持并行/分组。追求「依赖最少」时 lefthook 更优，simple-git-hooks + lint-staged 组合与之等价。本模板选用 lefthook。
+- lint-staged 与 lint/format 的组合：`"*.{js,ts,json,yaml,md}": "eslint --fix"`（antfu 路线）或 `"*": "oxfmt --no-error-on-unmatched-pattern"`（oxfmt 官方迁移指引推荐写法）。
+
+---
+
+## 四、commit message 规范
+
+- **commitlint 当前 21.2.2（2026-08-13）**，仍在常规维护（conventional-changelog 组织）。来源：[npm @commitlint/cli](https://www.npmjs.com/package/@commitlint/cli)。
+- 用户已有共享配置（Vanisper/schema-store 的 `.commitlintrc.yaml`）：基于 `@commitlint/config-conventional` + 自定义 `parserPreset.headerPattern`（兼容 emoji 左/中/右三位置）+ cz-git 风格 `prompt`（中文交互、`useEmoji: true`、`emojiAlign: left`、自定义 type-enum 含 `examples`/`init` 等）。
+- 接入方式：模板根目录放 `.commitlintrc.yaml`（可直接复用该共享配置内容），配 `commit-msg` 钩子 `commitlint --edit $1`；如需交互式提交可加 cz-git（`czg` CLI）。commitlint 与 Changesets 无冲突（changeset 提交走 `chore: version packages` 等标准 type 即可通过 type-enum——注意 `version` 不在现有 enum 中，如让机器人提交需留意，或将 CI 版本提交跳过校验）。
+
+---
+
+## 五、其他可选
+
+| 工具 | 最新版本 | 是否需要 |
+|---|---|---|
+| cspell | 10.2.0 | 可选。库定位 + 英文命名场景下价值中等；开了也基本零成本（`cspell lint` + CI），可后置 |
+| EditorConfig | —（编辑器标准） | 建议。`.editorconfig` 一份 4 行配置，与 antfu config / oxfmt（beta 起支持读 `insert_final_newline`）均兼容 |
+| stylelint | 17.14.1 | **不需要**。本模板为纯 TS 库、无 CSS；若未来出现样式文件，antfu config 的 `formatters.css` 只管格式化，届时再评估 stylelint |
+
+---
+
+## 六、职责抽象与组合矩阵
+
+将「编码规范工具链」抽象为四个职责（slot），每个职责独立选型，工具可替代、组合可拼装：
+
+```
+Lint ── Format ── Hooks ── Commit
+规则检查   格式化     钩子+增量    消息规范
+```
+
+### 6.1 各职责候选
+
+| 职责 | 候选 | 备选 | 经典/老一代 |
+|---|---|---|---|
+| Lint（规则检查） | **@antfu/eslint-config**（ESLint 预设） | oxlint + tsgolint / Biome | ESLint 手写 flat config + Prettier |
+| Format（格式化） | 并入 Lint（@stylistic） | Prettier / oxfmt / Biome formatter | — |
+| Hooks（钩子 + 增量检查） | **lefthook**（一个工具覆盖两件事） | simple-git-hooks + lint-staged（两件套） | husky + lint-staged |
+| Commit（消息规范） | commitlint（+ 共享 commitlint 配置） | — | — |
+
+### 6.2 组合替代关系
+
+```
+组合 A（本模板选择）
+  Lint:    @antfu/eslint-config（ESLint 预设，免 Prettier）
+  Format:  并入 Lint（@stylistic），JS/TS 无独立 formatter
+  Hooks:   lefthook（一体覆盖钩子+增量）
+  Commit:  commitlint + 共享配置
+
+组合 B（性能向演进）
+  Lint:    oxlint + tsgolint（type-aware）
+  Format:  oxfmt（beta，未 GA 时暂缓）
+  Hooks:   同 A
+  Commit:  同 A
+
+组合 C（经典回退）
+  Lint:    ESLint + Prettier + eslint-config-prettier
+  Hooks:   husky + lint-staged（或 simple-git-hooks + lint-staged）
+  Commit:  同 A
+```
+
+组合替代关系说明：
+- **Format 并入 Lint**（antfu 路线的核心优势）：`@antfu/eslint-config` 内置 `@stylistic` 风格规则 + `eslint --fix` 自动修复，JS/TS 格式化由 lint 完成，**零独立 formatter 依赖**
+- oxfmt GA 后，Format 职责可从 antfu 路线平滑切换（`oxfmt --migrate prettier`），对 Lint 职责无影响
+- lefthook / simple-git-hooks 是 Hooks 职责的两个实现，均可用；lefthook 可吸收 lint-staged 职责，Commit 职责始终是 commitlint
+
+### 6.3 四职责选型总表
+
+| 职责 | 主推 | 备选 | 经典/老一代 |
+|---|---|---|---|
+| Lint | @antfu/eslint-config | oxlint + tsgolint（性能向） / Biome | ESLint 手写 flat config |
+| Format | 并入 Lint（@stylistic） | oxfmt（GA 后） / Prettier | eslint-config-prettier 组合 |
+| Hooks | lefthook | simple-git-hooks + lint-staged | husky + lint-staged |
+| Commit | commitlint + 共享 `.commitlintrc.yaml` | — | — |
+
+---
+
+## 七、推荐组合
+
+### 组合 A（主推）：@antfu/eslint-config 一把梭 + lefthook + commitlint
+
+最贴合「antfu 生态偏好 + 内部使用 + 依赖极简」的一条路：**lint 与 JS/TS 格式化都由 ESLint 完成，不引入 Prettier；hooks 与增量检查由 lefthook 一个工具覆盖（钩子 + staged 文件过滤一体）**。
+
+1. **catalog**（`pnpm-workspace.yaml` 追加）：
+
+   ```yaml
+   catalog:
+     # ...已有
+     eslint: ^10.9.1
+     "@antfu/eslint-config": ^9.5.1
+     lefthook: ^2.1.12
+     "@commitlint/cli": ^21.2.2
+     "@commitlint/config-conventional": ^21.2.2
+   ```
+
+2. **根 package.json**：
+
+   ```jsonc
+   {
+     "scripts": {
+       "lint": "eslint .",
+       "lint:fix": "eslint . --fix",
+       "commitlint": "commitlint --edit"
+     }
+   }
+   ```
+
+3. **根 `lefthook.yml`**（一份配置覆盖原 simple-git-hooks + lint-staged 两份）：
+
+   ```yaml
+   pre-commit:
+     commands:
+       lint:
+         glob: "*.{js,mjs,ts,json,jsonc,yaml,yml,toml,md}"
+         staged_files: true
+         run: pnpm eslint --fix {staged_files}
+   commit-msg:
+     commands:
+       commitlint:
+         run: pnpm commitlint --edit {1}
+   ```
+
+   安装后执行一次 `pnpm exec lefthook install` 激活钩子（可挂到 `postinstall` 或文档说明）。
+
+4. **根 `eslint.config.mjs`**：
+
+   ```js
+   import antfu from '@antfu/eslint-config'
+
+   export default antfu({
+     type: 'lib', // 库定位：自动放宽部分 app 向规则
+     // type-aware 可选开启（内部库建议先不开，CI 有 tsc 兜底）：
+     // typescript: { tsconfigPath: 'tsconfig.base.json' },
+   })
+   ```
+
+   ESLint 10 的「就近查找配置」使 root 一份配置即可覆盖全部 packages；若个别包需特调，在该包内放追加的 flat config 即可。
+
+5. **turbo / CI**：lint 是「全仓一次跑完」的全局任务，**不必进 turbo 任务图**（per-package 跑 ESLint 反而重复加载配置）。CI 中在 `turbo run test check:pkg` 之外并行加一步：
+
+   ```bash
+   pnpm lint          # ESLint 全仓
+   pnpm exec commitlint --from origin/main --to HEAD   # 如需在 CI 校验 PR 内 commit
+   ```
+
+   若坚持进 turbo，可在 turbo.json 加 `"lint": {}` 并让各包 script 转发 `eslint .`，但收益不大。
+
+6. **预提交钩子是否必要**：必要且代价极低。lefthook 的 `staged_files` 过滤 + `eslint --fix` 顺手完成格式化；commit-msg 校验拦截不规范 message。钩子合计通常 < 2s，不成为提交摩擦。
+
+### 组合 B（备选/演进向）：oxlint(+tsgolint) + oxfmt + commitlint
+
+面向「追求极致速度、拥抱 oxc 全家桶」的路线，与模板已选的 tsdown（Rolldown/Oxc 系）生态同源：
+
+- lint：`oxlint .`（可加 `--type-aware`，需 `oxlint-tsgolint@^7`；tsconfig 布局规整时即开即用）
+- format：`oxfmt`（beta，0.x；接受未 GA 风险或作为试点）
+- hooks/commitlint：同组合 A
+- 适合场景：仓库规模大到 ESLint 成为 CI 瓶颈，或愿意押注 oxc 统一工具链（lint+format+build 同栈）。迁移路径：先用 oxlint 与组合 A 并存（`eslint-plugin-oxlint` 关重），oxfmt GA 后再替换格式化层。
+
+**对 cspell / EditorConfig 的建议**：`.editorconfig` 直接加（无依赖）；cspell 可后置，需要时 `cspell lint` 进 CI 即可。
+
+---
+
+## 附：版本快照（2026-09-03，npm registry dist-tags）
+
+| 包 | latest | 发布日期 |
+|---|---|---|
+| eslint | 10.9.1 | 2026-08-24 |
+| typescript-eslint | 8.69.0 | 2026-08-31 |
+| @antfu/eslint-config | 9.5.1 | 2026-09-02 |
+| oxlint | 1.81.0 | 2026-09-01 |
+| oxlint-tsgolint | 7.0.2001 | 2026-07-21 |
+| oxfmt | 0.66.0（beta） | 2026-09-01 |
+| prettier | 3.9.6 | 2026-07-21 |
+| @biomejs/biome | 2.5.11 | 2026-08-27 |
+| lint-staged | 17.4.1 | 2026-08-27 |
+| simple-git-hooks | 2.14.0 | 2026-08-28 |
+| husky | 9.1.7 | 2024-11-18 |
+| lefthook | 2.1.12 | 2026-08-28 |
+| @commitlint/cli | 21.2.2 | 2026-08-13 |
+| cspell | 10.2.0 | 2026-08-31 |
+| stylelint | 17.14.1 | 2026-07-20 |

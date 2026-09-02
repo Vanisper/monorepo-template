@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
 import { VERSION } from '@mono/core'
+import { describe, expect, it } from 'vitest'
 import { banner } from './index'
 
 describe('banner', () => {

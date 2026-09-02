@@ -6,11 +6,11 @@
 
 ## 背景
 
-monorepo-template 需要一套编码规范工具链，涵盖 Lint、Format、Hooks、Commit 四个职责。使用场景：内部自治、纯 TS 库定位、无 .vue/.css 文件。追求的是「稳定、依赖最少、配置最少、长期维护有保障。
+monorepo-template 需要一套编码规范工具链，涵盖 Lint、Format、Hooks、Commit 四个职责。使用场景：内部自治、纯 TS 库定位、无 .vue/.css 文件。追求的是「稳定、依赖最少、配置最少、长期维护有保障」。
 
 ## 决策
 
-采用 **组合 A（ESLint 生态路线）：
+采用 **组合 A（ESLint 生态路线）**：
 
 | 职责 | 选型 | 备选 |
 |---|---|---|
@@ -23,15 +23,15 @@ monorepo-template 需要一套编码规范工具链，涵盖 Lint、Format、Hoo
 
 | 工具 | 定位 | 排除/选用原因 |
 |---|---|---|
-| **ESLint + @antfu/eslint-config** | lint 引擎 + 规则预设 | ✅ 选用：ESLint 是当前唯一全场景生产就绪的 lint 引擎（Vue/Svelte/Astro template lint 成熟、插件生态完整 |
+| **ESLint + @antfu/eslint-config** | lint 引擎 + 规则预设 | ✅ 选用：ESLint 是当前唯一全场景生产就绪的 lint 引擎（Vue/Svelte/Astro template lint 成熟、插件生态完整） |
 | oxlint + tsgolint | 性能向 linter | ❌ type-aware 已稳，但 oxfmt 未 GA，且与 ESLint 生态互不相通 |
-| Biome | 单二进制 lint+format 一体 | ❌ 生不逢时：oxfmt 未 GA、Vue 支持 experimental，与 ESLint 生态互不相通 |
+| Biome | 单二进制 lint+format 一体 | ❌ 生不逢时：Vue/Svelte/Astro 支持为 🟡 experimental、无插件系统、与 ESLint 生态互不相通 |
 | simple-git-hooks + lint-staged | 两个 JS 依赖 | ❌ lefthook 一个 Go 二进制覆盖 hooks + staged 过滤，依赖更少 |
 | commitlint | commit 规范 | ✅ 选用：共享 cz-git 配置、中文交互、type-enum 扩展 |
 
 ### 理由
 
-1. **ESLint 是当前唯一「全场景生产就绪」的 lint 引擎**（Vue/Svelte/Astro template lint 成熟、插件生态完整；配合 `@antfu/eslint-config` 预设，lint 与 JS/TS 格式化都由 ESLint 完成，**零独立 formatter 依赖**
+1. **ESLint 是当前唯一「全场景生产就绪」的 lint 引擎**（Vue/Svelte/Astro template lint 成熟、插件生态完整）；配合 `@antfu/eslint-config` 预设，lint 与 JS/TS 格式化都由 ESLint 完成，**零独立 formatter 依赖**
 2. **lefthook 一个工具覆盖 hooks + staged 过滤**（替代 simple-git-hooks + lint-staged 两个 JS 依赖；Go 二进制、配置一份、不绑 Node 生态
 3. **antfu 预设的「lint + format 一体」设计**：`@antfu/eslint-config` 内置 `@stylistic` 风格规则 + `eslint --fix` 自动修复，JS/TS 格式化由 lint 完成，免 Prettier，依赖最少
 4. **commitlint + cz-git 共享配置**：cz-git 风格提交规范与 internal 使用场景契合

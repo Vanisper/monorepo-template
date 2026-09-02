@@ -98,6 +98,7 @@ turbo 的任务依赖拓扑定义在根 `turbo.json`：
 **cspell**
 - **引入原因**：代码中的英文拼写错误（标识符、注释、文档里的英文单词）拼写错误没有工具能自动检查——TypeScript 只管类型对不对，ESLint 不管拼写对不对，cspell 补上这一环
 - **起作用的时机**：手动跑 `pnpm spell`，或 CI 中 `cspell lint`；编辑器装 cspell 插件后可在写代码时实时提示
+<!-- cspell:disable-next-line -->
 - **作用**：捕获英文拼写错误（`connnection` → `connection` 等）；本模板以中文文档为主，cspell 主要价值是英文标识符和技术术语的拼写——词典已覆盖项目技术术语（tsdown、oxlint、lefthook 等）
 
 ### Hooks 工作流

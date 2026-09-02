@@ -92,7 +92,7 @@ turbo 的任务依赖拓扑定义在根 `turbo.json`：
 
 **EditorConfig**
 - **引入原因**：编辑器层面的基础格式约定，与 lint/formatter 职责不重叠——lint 管「代码风格与潜在 bug」，EditorConfig 管「编辑器如何写入文件」（缩进、换行、编码、行尾空白）。两者覆盖不同层：lint 事后检查 + 修复，EditorConfig 在编辑器保存时就把基本格式弄对，让 lint 少干活
-- **起作用的时机**：在支持 EditorConfig 的编辑器（VS Code、JetBrains IDE、Sublime 等）保存文件时自动应用；根 `.editorconfig` 的 4 项配置（2 空格缩进、LF 换行、UTF-8、删除行尾空白 + 末尾换行）对所有文件生效，不区分语言
+- **起作用的时机**：分两类——**即时生效类**（编辑器打开文件时读取，按 Tab 就插对应空格，Tab 宽度显示调整；如 `indent_style`/`indent_size`/`tab_width`）和**保存时处理类**（Ctrl+S 时执行；如 `trim_trailing_whitespace` 删行尾空格、`insert_final_newline` 补末尾换行、`end_of_line` 统一换行符）。VS Code 需要装 EditorConfig 扩展才能执行保存时处理类属性
 - **作用**：从源头上统一基础格式，减少「编辑器写入的格式与 lint 期望的格式不一致」的问题（比如有人在编辑器里用 tab、有人用空格），让 lint 只需要处理逻辑层面的规则
 
 **cspell**

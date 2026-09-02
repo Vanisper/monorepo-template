@@ -73,3 +73,52 @@ turbo 的任务依赖拓扑定义在根 `turbo.json`：
   - 推论：如果上游包源码改了但没构建，下游包的测试会引用**旧产物**。日常开发建议 `pnpm dev`（watch）保持产物最新。
   - 若想让测试直接跑源码，可在各包 `vitest.config.ts` 中用 `resolve.alias` 把 `@mono/*` 映射到源码，届时 `test` 任务可去掉 `^build`。
 - `check:pkg` 的 `build`（无 `^`）：publint / attw 校验的是本包自己的产物，只需依赖**本包**的 build，不需要拓扑。
+
+## 编码规范与 Git hooks
+
+模板接入 `ESLint + @antfu/eslint-config`（lint + 格式化一体，免 Prettier）+ `lefthook`（Git hooks）+ `commitlint`（提交规范）。
+
+### 组成
+
+| 工具 | 职责 | 配置文件 |
+|---|---|---|
+| ESLint + @antfu/eslint-config | lint + 格式化（@stylistic，免 Prettier） | 根 `eslint.config.mjs` |
+| lefthook | Git hooks（pre-commit / commit-msg / pre-push） | 根 `lefthook.yml` |
+| commitlint | commit message 规范（共享 cz-git 配置） | 根 `.commitlintrc.yaml` |
+### Hooks 工作流
+
+```yaml
+# lefthook.yml
+pre-commit: eslint {staged_files} # 只检查不修复（见下文「静默 fix」说明）
+commit-msg: commitlint --edit {1}
+pre-push: pnpm lint # 本地兜底，CI 不可用时推前做全仓 lint
+```
+
+### 初始化时机
+
+- **lefthook 钩子**：`pnpm install` 时自动安装（lefthook 的 postinstall 脚本自动执行 `lefthook install`，无需手动执行；但需在 `pnpm-workspace.yaml` 配置 `allowBuilds` 放行（pnpm 11 默认拦截依赖的 postinstall 脚本）
+- **ESLint TS 检测陷阱**：antfu config 通过 `isPackageExists("typescript")` 从根目录检测 TS 项目，typescript 只在子包中时根目录检测不到 → 所有 .ts 文件被静默忽略；需在 `eslint.config.mjs` 显式 `typescript: true` 强制开启
+
+### 静默 --fix 的隐患
+
+`run: eslint --fix {staged_files}` 时，eslint --fix 会修改工作区文件，但 lefthook 默认**不重新暂存**（`stage_fixed` 默认关闭——「代码被改了但提交的还是旧内容」，这就是「静默 fix 陷阱。本模板选择**不加 `--fix`，pre-commit 只做检查，报错让开发者自己跑 `pnpm lint:fix` 处理。
+### 常见问题
+
+- **`.ts` 文件 lint 不到**：antfu config 根目录检测不到 typescript → 全部静默忽略。修复方法见上（`typescript: true`
+- **eslint 忽略文件**：首次跑 antfu config 时会自动修复 json/yaml 排序、引号风格等，属正常行为
+- **pnpm 的 `allowBuilds`**：pnpm 11 默认拦截依赖安装脚本，lefthook 需要显式 `allowBuilds: { lefthook: true }` 放行 postinstall，否则 `pnpm lint` 可用但 git hook 失效
+- **eslint-plugin-pnpm 的 catalog 规则**：自动把根 package.json 的 devDependencies 也强制进 catalog，实现「全部进 catalog」的治理目标
+
+### 验证钩子是否生效
+
+```bash
+# 1. lint 生效验证：故意写坏一个 .ts 文件
+printf 'const a = 1\nexport const b: number = "x"\n' > packages/core/src/bad.ts   # eslint 应报 2 个 error（unused + 双引号）
+pnpm lint   # 应报错
+rm packages/core/src/bad.ts   # 清理
+
+# pre-commit 验证：故意加未使用变量，commit 应被拦截
+echo 'const unused = 1' > packages/core/src/index.ts
+git add packages/core/src/index.ts && git commit -m "test"  # pre-commit 应报 unused-imports/no-unused-vars
+git reset && git checkout -- packages/core/src/index.ts   # 还原
+```

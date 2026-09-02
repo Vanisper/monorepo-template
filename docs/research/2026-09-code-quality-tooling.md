@@ -261,10 +261,12 @@ ESLint 是当前唯一「全场景生产就绪」的 lint 引擎（Vue/Svelte/As
 
    export default antfu({
      type: 'lib', // 库定位：自动放宽部分 app 向规则
-     // type-aware 可选开启（内部库建议先不开，CI 有 tsc 兜底）：
-     // typescript: { tsconfigPath: 'tsconfig.base.json' },
+     // 关键：antfu 通过 isPackageExists("typescript") 从根目录检测 TS 项目，typescript 只在子包时检测不到 → 所有 .ts 文件被静默忽略，必须显式开启
+     typescript: true,
    })
    ```
+   
+   **重要陷阱**：antfu config 通过 `isPackageExists("typescript")` 从根目录检测 TS 项目；若 typescript 只在子包中，根目录检测会失败 → 所有 .ts 文件被静默忽略（ignoreTypeScript 被置 true）。**在 monorepo 模板中 typescript 通常不进根 package.json，此时 antfu config 默认不启用 TS 支持，lint 会静默跳过所有 .ts 文件。**必须显式开启** `typescript: true`（或配置 tsconfigPath 开启 type-aware）。
 
    ESLint 10 的「就近查找配置」使 root 一份配置即可覆盖全部 packages；若个别包需特调，在该包内放追加的 flat config 即可。
 
@@ -275,11 +277,21 @@ ESLint 是当前唯一「全场景生产就绪」的 lint 引擎（Vue/Svelte/As
      commands:
        lint:
          glob: '*.{js,mjs,ts,json,jsonc,yaml,yml,toml,md}'
-         run: pnpm eslint --fix {staged_files}
+         run: pnpm eslint {staged_files} # 只检查不自动修复（见下文「实践备注」）
    commit-msg:
      commands:
        commitlint:
          run: pnpm commitlint --edit {1}
+   pre-push:
+     commands:
+       lint:
+         run: pnpm lint # 本地兜底（无 CI 场景），push 前做全仓 lint
+   ```
+
+   ```
+
+   安装后执行一次 `pnpm exec lefthook install` 激活钩子（可挂到 `postinstall`）。
+
    ```
 
    安装后执行一次 `pnpm exec lefthook install` 激活钩子（可挂到 `postinstall`）。
@@ -291,7 +303,14 @@ ESLint 是当前唯一「全场景生产就绪」的 lint 引擎（Vue/Svelte/As
    pnpm exec commitlint --from origin/main --to HEAD   # 如需在 CI 校验 PR 内 commit
    ```
 
-6. **预提交钩子是否必要**：必要且代价极低。lefthook 的 `{staged_files}` 占位符只传匹配的 staged 文件给 `eslint --fix`，顺手完成格式化；commit-msg 校验拦截不规范 message。钩子合计通常 < 2s，不成为提交摩擦。
+6. **预提交钩子是否必要**：必要且代价极低。lefthook 的 `{staged_files}` 占位符只传匹配的 staged 文件给 eslint 做检查；commit-msg 校验拦截不规范 message。钩子合计通常 < 2s，不成为提交摩擦。
+
+#### 实践备注（2026-09-03 落地后补充）
+
+- **hooks 初始化是自动的**：lefthook 的 npm 包自带 postinstall，安装时自动执行 `lefthook install`（pnpm 输出可见 `sync hooks: ✔️`，无需手动执行
+- **`staged_files` 只是 `run` 命令里的占位符**：lefthook 原生按 staged 文件过滤并传参，`{staged_files}` 是 `run` 命令里的占位符，不需要额外配置属性
+- **静默 --fix 的隐患**：`run: eslint --fix {staged_files}` 时，eslint --fix 修改工作区文件后 lefthook 默认不重新暂存（`stage_fixed` 默认关闭），可能造成「修了但没提交」的假象——本模板选择**不加 `--fix`，pre-commit 只做检查，报错就让开发者自己跑 `pnpm lint:fix` 处理，避免静默修改被提交遗漏；如果要自动重暂存修复结果，可在 lefthook 中设置 `stage_fixed: true`
+- **pre-push 钩子做本地兜底**：CI 不可用时，push 前做一次 `pnpm lint` 全仓检查，确保推送内容不红
 
 ### 组合 B（次选/性能向）：oxlint(+tsgolint) + oxfmt + lefthook + commitlint
 

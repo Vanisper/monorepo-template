@@ -9,7 +9,7 @@
 
 - **ESLint v10 于 2026-02-06 正式发布**（当前 10.9.1，2026-08-24）。eslintrc 体系被彻底移除（`.eslintrc.*`、`.eslintignore` 不再生效），flat config 成为唯一配置形态；配置查找改为「从被 lint 文件所在目录向上查找」，天然利好 monorepo 多配置；要求 Node `^20.19.0 || ^22.13.0 || >=24`。来源：[ESLint v10.0.0 released](https://eslint.org/blog/2026/02/eslint-v10.0.0-released/)、[What's coming in ESLint v10.0.0](https://eslint.org/blog/2025/10/whats-coming-in-eslint-10.0.0/)。
 - **oxc 系全面成熟**：oxlint 1.x 稳定版（当前 1.81.0）规则总数达 870+；**类型感知 lint 于 2026-07-22 宣布稳定**（tsgolint v7，基于 tsgo，覆盖 typescript-eslint 61 条 type-aware 规则中的 59 条）；oxfmt 于 2026-02-24 达到 beta（100% 通过 Prettier 的 JS/TS 一致性测试），尚未 GA。来源：[Type-Aware Linting Stable](https://oxc.rs/blog/2026-07-22-type-aware-linting-stable)、[Oxfmt Beta](https://oxc.rs/blog/2026-02-24-oxfmt-beta)、[oxlint rules](https://oxc.rs/docs/guide/usage/linter/rules.html)。
-- **Biome v2（codename Biotype）2025-06 发布**（当前 2.5.11，2026-08-27），提供了不依赖 TypeScript 编译器的 type-aware lint；v2.3（2025-10）起完整支持 Vue / Svelte / Astro。来源：[Biome v2](https://biomejs.dev/blog/biome-v2/)、[Biome v2.3](https://biomejs.dev/blog/biome-v2-3/)。
+- **Biome v2（codename Biotype）2025-06 发布**（当前 2.5.11，2026-08-27），提供了不依赖 TypeScript 编译器的 type-aware lint；v2.3（2025-10）起支持 Vue / Svelte / Astro 全文件（HTML/CSS/JS 部分），**但截至 v2.5.11 仍是 🟡 experimental，需显式开启 `html.experimentalFullSupportEnabled`，跨语言规则存在已知误报，官方明确不建议在生产项目直接使用**。来源：[Biome v2](https://biomejs.dev/blog/biome-v2/)、[Biome v2.3](https://biomejs.dev/blog/biome-v2-3/)、[Biome language-support 文档](https://biomejs.dev/internals/language-support/)。
 - **Prettier 3.9（2026-06）** 持续活跃（当前 3.9.6），社区地位稳固但面临 oxfmt / Biome 的性能挑战。来源：[Prettier 3.9 blog](https://prettier.io/blog/2026/06/27/3.9.0)。
 - **Cloudflare 2026-06 收购 VoidZero**（Vite / Vitest / Rolldown / Oxc 的母公司），oxc 系的长期投入有背书。来源见同目录 `2026-09-monorepo-tech-selection.md`。
 
@@ -59,7 +59,7 @@
 - 短板：没有 ESLint 式插件运行时，生态长尾规则（如某些团队自研规则）仍需 ESLint；antfu config 作者也明确表示在等 oxlint 集成的阻塞项解决。来源：[antfu/eslint-config FAQ](https://github.com/antfu/eslint-config)。
 
 **Biome** —— 一体化但生态隔离。
-- linter + formatter + import 排序一个二进制搞定，Vue/Svelte/Astro 全支持，配置极简。
+- linter + formatter + import 排序一个二进制搞定，配置极简；v2.3 起支持 Vue/Svelte/Astro 全文件（HTML/CSS/JS 部分，含 template），**但为 🟡 experimental**（需显式开启 `html.experimentalFullSupportEnabled`，v2.5 跨语言规则仍可能误报，官方不建议生产直接使用）。
 - 短板：无插件系统，规则不可扩展；与 ESLint 生态互不相通，对「antfu 生态偏好」的用户意味着放弃整个 ESLint 插件资产。来源：[Biome Roadmap 2026](https://biomejs.dev/blog/roadmap-2026/)。
 
 ---
@@ -73,7 +73,7 @@
 | 最新版本 | 3.9.6 | 2.5.11 | 0.66.0（**beta，未 GA**） |
 | 速度 | 基准 | ~3× Prettier | **30×+ Prettier，3× Biome** |
 | JS/TS/JSX | ✅ | ✅ | ✅（100% 通过 Prettier JS/TS 一致性测试） |
-| Vue / Svelte | ✅（Vue 官方插件） | ✅（2.3 起） | ✅（Vue；Svelte 不在官方列表中） |
+| Vue / Svelte | ✅（Vue 官方插件） | 🟡 experimental（2.3 起全文件，需显式开启） | ✅（Vue；Svelte 不在官方列表中） |
 | 其他文件 | MD/YAML/CSS/GraphQL 等 + 丰富插件（如 tailwindcss 排序） | CSS/GraphQL 等（2.x 默认开启） | MD/YAML/TOML/HTML/CSS/GraphQL 等全内置；**内置 Tailwind 类排序、import 排序、package.json 排序** |
 | 配置量 | 中（.prettierrc + 插件） | 低（biome.json 一处） | 低；提供 `--migrate prettier` / `--migrate biome` 一键迁移 |
 | 与 lint 组合 | 与 ESLint 需 eslint-config-prettier 解冲突 | 与 Biome linter 一体 | 与 oxlint 同生态（VoidZero）；配 antfu config 时其 formatters 选项仍走 Prettier/dprint |

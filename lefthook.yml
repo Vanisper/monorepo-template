@@ -2,8 +2,15 @@ pre-commit:
   commands:
     lint:
       glob: '*.{js,mjs,ts,json,jsonc,yaml,yml,toml,md}'
-      run: pnpm eslint --fix {staged_files}
+      # 只检查不自动修复：静默 --fix 会修改工作区文件但不重新暂存（stage_fixed 默认关闭），导致「修了但没提交」的假象
+      run: pnpm eslint {staged_files}
 commit-msg:
   commands:
     commitlint:
       run: pnpm commitlint --edit {1}
+
+# 本地兜底场景：没有 CI 可用时，push 前做一次全仓 lint 检查
+pre-push:
+  commands:
+    lint:
+      run: pnpm lint

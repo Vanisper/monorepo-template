@@ -83,7 +83,7 @@
 ### 2.2 结论
 
 - **oxfmt 尚未 GA（2026-02 达 beta，当前 0.x）**，但已被 vuejs/core、vercel/turborepo、sentry 等采用，且对 Prettier 行为完全兼容（官方与 Prettier 团队协同收敛差异）。追求性能可先行试用；追求稳妥则仍用 Prettier，后续 `oxfmt --migrate prettier` 平滑切换。
-- antfu 路线下 **JS/TS 格式化可直接交给 ESLint（`@stylistic`）**，不引入独立 formatter；仅 CSS/HTML/MD 等用 `formatters` 选项或 Prettier 兜底。这是三套方案里依赖最少的一条路。
+- **Biome 路线下 formatter 与 linter 一体，是依赖最少的一条路**（零独立 formatter 依赖）；antfu 路线下 JS/TS 格式化可直接交给 ESLint（`@stylistic`），仅 CSS/HTML/MD 等用 `formatters` 选项或 Prettier 兜底。
 
 ---
 
@@ -134,56 +134,71 @@ Lint ── Format ── Hooks ── Commit
 规则检查   格式化     钩子+增量    消息规范
 ```
 
-### 6.1 各职责选型总表
+### 6.1 分层模型：工具引擎 vs 规则预设
+
+Lint 职责内部要分两层看——**真正可替代的是工具引擎，规则预设只是引擎之上的配置**：
+
+```
+工具引擎层（三选一，互相替代）        规则预设层（仅选了 ESLint 才存在）
+────────────────────────────      ─────────────────────────────────
+ESLint  ── 最大生态、最成熟          @antfu/eslint-config / 手写 flat config / airbnb / standard ...
+oxlint  ── oxc 系、type-aware 已稳      （选了 oxlint / Biome，此层不存在）
+Biome   ── 单二进制、lint+format 一体
+```
+
+`@antfu/eslint-config` 本质是 ESLint 的规则预设，不是独立工具——把它和 ESLint 并列在候选里是分层错误。同理，Format 职责也随引擎不同而并入或独立：Biome 内置 formatter、oxc 配 oxfmt、ESLint 则靠 `@stylistic`（antfu 预设已含）或 Prettier 独立工具。
+
+### 6.2 各职责选型总表
 
 | 职责 | 主推 | 备选 | 经典/老一代 |
 |---|---|---|---|
-| Lint（规则检查） | @antfu/eslint-config | oxlint + tsgolint（性能向） / Biome | ESLint 手写 flat config |
-| Format（格式化） | 并入 Lint（@stylistic） | oxfmt（GA 后） / Prettier | eslint-config-prettier 组合 |
+| Lint（引擎） | Biome（单二进制） | oxlint + tsgolint（性能向） / ESLint | — |
+| Lint（规则预设，仅 ESLint） | @antfu/eslint-config | 手写 flat config | airbnb / standard |
+| Format（格式化） | 并入 Lint 引擎（Biome / oxfmt / @stylistic） | Prettier | eslint-config-prettier 组合 |
 | Hooks（钩子 + 增量检查） | lefthook（一体覆盖钩子+staged 过滤） | simple-git-hooks + lint-staged（两件套） | husky + lint-staged |
 | Commit（消息规范） | commitlint + 共享 `.commitlintrc.yaml` | — | — |
 
-### 6.2 组合替代关系
+### 6.3 组合替代关系
 
 ```
-组合 A（本模板选择）
-  Lint:    @antfu/eslint-config（ESLint 预设，免 Prettier）
-  Format:  并入 Lint（@stylistic），JS/TS 无独立 formatter
-  Hooks:   lefthook（一体覆盖钩子+增量）
-  Commit:  commitlint + 共享配置
+组合 A（本模板选择：单二进制哲学）
+  Lint/Format: Biome（一个 Rust 二进制，lint+format+import 排序一体）
+  Hooks:       lefthook（Go 二进制）
+  Commit:      commitlint + 共享配置
 
-组合 B（性能向演进）
+组合 B（性能向演进：oxc 全家桶）
   Lint:    oxlint + tsgolint（type-aware）
   Format:  oxfmt（beta，未 GA 时暂缓）
   Hooks:   同 A
   Commit:  同 A
 
-组合 C（经典回退）
-  Lint:    ESLint + Prettier + eslint-config-prettier
-  Hooks:   husky + lint-staged（或 simple-git-hooks + lint-staged）
+组合 C（ESLint 生态路线）
+  Lint:    ESLint + @antfu/eslint-config（预设免手写）
+  Format:  并入 Lint（@stylistic）
+  Hooks:   同 A
   Commit:  同 A
 ```
 
 组合替代关系说明：
-- **Format 并入 Lint**（antfu 路线的核心优势）：`@antfu/eslint-config` 内置 `@stylistic` 风格规则 + `eslint --fix` 自动修复，JS/TS 格式化由 lint 完成，**零独立 formatter 依赖**
-- oxfmt GA 后，Format 职责可从 antfu 路线平滑切换（`oxfmt --migrate prettier`），对 Lint 职责无影响
-- lefthook / simple-git-hooks 是 Hooks 职责的两个实现，均可用；lefthook 可吸收 lint-staged 职责，Commit 职责始终是 commitlint
+- **组合 A 的核心逻辑**：与选 lefthook 的哲学一致——单一二进制、职责内聚、不绑 Node 生态。Biome 的「生态隔离」对纯 TS 库模板是优点（依赖最少、配置最少），不是缺点
+- **组合 B 何时启用**：oxfmt GA 后，追求极致性能时
+- **组合 C 何时启用**：需要 ESLint 插件生态时（如 Vue/Astro/Svelte 的 template lint——目前只有 ESLint 系生产就绪）
+- Commit 职责始终是 commitlint，与前三者完全解耦；Hooks 职责两个实现（lefthook / simple-git-hooks+lint-staged）对任何 Lint 引擎通用
 
 ---
 
 ## 七、推荐组合
 
-### 组合 A（主推）：@antfu/eslint-config 一把梭 + lefthook + commitlint
+### 组合 A（主推）：Biome + lefthook + commitlint
 
-最贴合「antfu 生态偏好 + 内部使用 + 依赖极简」的一条路：**lint 与 JS/TS 格式化都由 ESLint 完成，不引入 Prettier；hooks 与增量检查由 lefthook 一个工具覆盖（钩子 + staged 文件过滤一体）**。
+与选 lefthook 相同的哲学：**单一二进制、职责内聚、不绑 Node 生态**。lint / format / import 排序由 Biome 一个 Rust 二进制完成；hooks 与 staged 过滤由 lefthook 一个 Go 二进制完成；commit 规范由 commitlint 负责。
 
 1. **catalog**（`pnpm-workspace.yaml` 追加）：
 
    ```yaml
    catalog:
      # ...已有
-     eslint: ^10.9.1
-     "@antfu/eslint-config": ^9.5.1
+     "@biomejs/biome": ^2.5.11
      lefthook: ^2.1.12
      "@commitlint/cli": ^21.2.2
      "@commitlint/config-conventional": ^21.2.2
@@ -194,54 +209,56 @@ Lint ── Format ── Hooks ── Commit
    ```jsonc
    {
      "scripts": {
-       "lint": "eslint .",
-       "lint:fix": "eslint . --fix",
+       "lint": "biome check .",
+       "lint:fix": "biome check --write .",
        "commitlint": "commitlint --edit"
      }
    }
    ```
 
-3. **根 `lefthook.yml`**（一份配置覆盖原 simple-git-hooks + lint-staged 两份）：
+3. **根 `biome.json`**：
+
+   ```jsonc
+   {
+     "$schema": "https://biomejs.dev/schemas/2.5.11/schema.json",
+     "files": {
+       "includes": ["**", "!**/dist", "!**/node_modules", "!**/pnpm-lock.yaml"]
+     },
+     "linter": {
+       "enabled": true,
+       "rules": { "recommended": true }
+     },
+     "formatter": {
+       "enabled": true
+     },
+     "assist": {
+       "actions": {
+         "source": { "organizeImports": "on" }
+       }
+     }
+   }
+   ```
+
+4. **根 `lefthook.yml`**：
 
    ```yaml
    pre-commit:
      commands:
-       lint:
-         glob: "*.{js,mjs,ts,json,jsonc,yaml,yml,toml,md}"
+       biome:
+         glob: "*.{js,mjs,cjs,ts,mts,cts,json,jsonc}"
          staged_files: true
-         run: pnpm eslint --fix {staged_files}
+         run: pnpm biome check --write {staged_files}
    commit-msg:
      commands:
        commitlint:
          run: pnpm commitlint --edit {1}
    ```
 
-   安装后执行一次 `pnpm exec lefthook install` 激活钩子（可挂到 `postinstall` 或文档说明）。
+   安装后执行一次 `pnpm exec lefthook install` 激活钩子（可挂到 `postinstall`）。
 
-4. **根 `eslint.config.mjs`**：
+5. **turbo / CI**：lint 是「全仓一次跑完」的全局任务，不进 turbo 任务图。CI 加 `pnpm lint` 一步（`biome check .`）。
 
-   ```js
-   import antfu from '@antfu/eslint-config'
-
-   export default antfu({
-     type: 'lib', // 库定位：自动放宽部分 app 向规则
-     // type-aware 可选开启（内部库建议先不开，CI 有 tsc 兜底）：
-     // typescript: { tsconfigPath: 'tsconfig.base.json' },
-   })
-   ```
-
-   ESLint 10 的「就近查找配置」使 root 一份配置即可覆盖全部 packages；若个别包需特调，在该包内放追加的 flat config 即可。
-
-5. **turbo / CI**：lint 是「全仓一次跑完」的全局任务，**不必进 turbo 任务图**（per-package 跑 ESLint 反而重复加载配置）。CI 中在 `turbo run test check:pkg` 之外并行加一步：
-
-   ```bash
-   pnpm lint          # ESLint 全仓
-   pnpm exec commitlint --from origin/main --to HEAD   # 如需在 CI 校验 PR 内 commit
-   ```
-
-   若坚持进 turbo，可在 turbo.json 加 `"lint": {}` 并让各包 script 转发 `eslint .`，但收益不大。
-
-6. **预提交钩子是否必要**：必要且代价极低。lefthook 的 `staged_files` 过滤 + `eslint --fix` 顺手完成格式化；commit-msg 校验拦截不规范 message。钩子合计通常 < 2s，不成为提交摩擦。
+6. **已知代价**：无插件系统（无法写自定义规则）；type-aware 规则覆盖不及 typescript-eslint——内部库由 CI 的构建链路（tsc/tsdown）兜底类型错误，lint 层 gap 可接受；Vue 支持为 experimental（本模板无 .vue 文件，不受影响）。
 
 ### 组合 B（备选/演进向）：oxlint(+tsgolint) + oxfmt + commitlint
 
@@ -250,7 +267,15 @@ Lint ── Format ── Hooks ── Commit
 - lint：`oxlint .`（可加 `--type-aware`，需 `oxlint-tsgolint@^7`；tsconfig 布局规整时即开即用）
 - format：`oxfmt`（beta，0.x；接受未 GA 风险或作为试点）
 - hooks/commitlint：同组合 A
-- 适合场景：仓库规模大到 ESLint 成为 CI 瓶颈，或愿意押注 oxc 统一工具链（lint+format+build 同栈）。迁移路径：先用 oxlint 与组合 A 并存（`eslint-plugin-oxlint` 关重），oxfmt GA 后再替换格式化层。
+- 适合场景：oxfmt GA 后押注 oxc 统一工具链（lint+format+build 同栈）；oxfmt 官方提供 `--migrate biome` 一键迁移，切换成本低。迁移路径：先用 Biome 的 formatter（GA 前），GA 后 `oxfmt --migrate biome` 平移
+
+### 组合 C（ESLint 生态路线）：@antfu/eslint-config + lefthook + commitlint
+
+当需要 **ESLint 插件生态** 时的回退路线：
+
+- 需要 Vue/Astro/Svelte 的 **template lint**（目前只有 ESLint 系生产就绪）
+- 需要 antfu 的 `eslint-plugin-pnpm`（catalog 规则）、`@vitest/eslint-plugin` 等 ESLint 专属插件
+- 接入方式：catalog 加 `eslint` + `@antfu/eslint-config`，根 `eslint.config.mjs` 用 `antfu({ type: 'lib' })` 一行配置；lefthook 的 pre-commit 命令改为 `pnpm eslint --fix {staged_files}`
 
 **对 cspell / EditorConfig 的建议**：`.editorconfig` 直接加（无依赖）；cspell 可后置，需要时 `cspell lint` 进 CI 即可。
 

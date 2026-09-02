@@ -134,14 +134,14 @@ Lint ── Format ── Hooks ── Commit
 规则检查   格式化     钩子+增量    消息规范
 ```
 
-### 6.1 各职责候选
+### 6.1 各职责选型总表
 
-| 职责 | 候选 | 备选 | 经典/老一代 |
+| 职责 | 主推 | 备选 | 经典/老一代 |
 |---|---|---|---|
-| Lint（规则检查） | **@antfu/eslint-config**（ESLint 预设） | oxlint + tsgolint / Biome | ESLint 手写 flat config + Prettier |
-| Format（格式化） | 并入 Lint（@stylistic） | Prettier / oxfmt / Biome formatter | — |
-| Hooks（钩子 + 增量检查） | **lefthook**（一个工具覆盖两件事） | simple-git-hooks + lint-staged（两件套） | husky + lint-staged |
-| Commit（消息规范） | commitlint（+ 共享 commitlint 配置） | — | — |
+| Lint（规则检查） | @antfu/eslint-config | oxlint + tsgolint（性能向） / Biome | ESLint 手写 flat config |
+| Format（格式化） | 并入 Lint（@stylistic） | oxfmt（GA 后） / Prettier | eslint-config-prettier 组合 |
+| Hooks（钩子 + 增量检查） | lefthook（一体覆盖钩子+staged 过滤） | simple-git-hooks + lint-staged（两件套） | husky + lint-staged |
+| Commit（消息规范） | commitlint + 共享 `.commitlintrc.yaml` | — | — |
 
 ### 6.2 组合替代关系
 
@@ -168,15 +168,6 @@ Lint ── Format ── Hooks ── Commit
 - **Format 并入 Lint**（antfu 路线的核心优势）：`@antfu/eslint-config` 内置 `@stylistic` 风格规则 + `eslint --fix` 自动修复，JS/TS 格式化由 lint 完成，**零独立 formatter 依赖**
 - oxfmt GA 后，Format 职责可从 antfu 路线平滑切换（`oxfmt --migrate prettier`），对 Lint 职责无影响
 - lefthook / simple-git-hooks 是 Hooks 职责的两个实现，均可用；lefthook 可吸收 lint-staged 职责，Commit 职责始终是 commitlint
-
-### 6.3 四职责选型总表
-
-| 职责 | 主推 | 备选 | 经典/老一代 |
-|---|---|---|---|
-| Lint | @antfu/eslint-config | oxlint + tsgolint（性能向） / Biome | ESLint 手写 flat config |
-| Format | 并入 Lint（@stylistic） | oxfmt（GA 后） / Prettier | eslint-config-prettier 组合 |
-| Hooks | lefthook | simple-git-hooks + lint-staged | husky + lint-staged |
-| Commit | commitlint + 共享 `.commitlintrc.yaml` | — | — |
 
 ---
 

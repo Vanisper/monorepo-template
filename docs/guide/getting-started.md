@@ -118,6 +118,24 @@ pre-push: pnpm lint # 本地兜底，CI 不可用时推前做全仓 lint
 ### 静默 --fix 的隐患
 
 `run: eslint --fix {staged_files}` 时，eslint --fix 会修改工作区文件，但 lefthook 默认**不重新暂存**（`stage_fixed` 默认关闭——「代码被改了但提交的还是旧内容」，这就是「静默 fix 陷阱。本模板选择**不加 `--fix`，pre-commit 只做检查，报错让开发者自己跑 `pnpm lint:fix` 处理。
+
+### 目录排除（ignores）
+
+ESLint 没有自定义排除规则，靠两层机制覆盖：
+
+1. **antfu config 的内置默认忽略**：约 40 项常见模式（node_modules、dist、CHANGELOG、LICENSE、min 文件、lock 文件、`.idea`、`.cache` 等）
+2. **`.gitignore` 集成**（`antfu/gitignore`）：读取项目根 `.gitignore`，覆盖 dist/、.turbo/、*.tsbuildinfo 等
+
+当前全仓 `pnpm lint` 0 错误通过，所以**暂时不需要自定义排除**。如需排除（如 `docs/research/` 里的长英文调研文档跳过 markdown 代码块检查），可在 `eslint.config.mjs` 中追加：
+
+```js
+export default antfu({
+  type: 'lib',
+  typescript: true,
+  ignores: ['docs/research/**'],
+})
+```
+
 ### 常见问题
 
 - **`.ts` 文件 lint 不到**：antfu config 根目录检测不到 typescript → 全部静默忽略。修复方法见上（`typescript: true`

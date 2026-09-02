@@ -11,6 +11,9 @@
 - **打包**：tsdown — 基于 Rolldown 的 TS 库打包器（ESM/CJS 双格式 + oxc 极速 d.ts）
 - **版本管理**：Changesets v3 — changeset → version → tag → 可选 npm 发布（分步流程）
 - **测试**：Vitest — 原生 TS/ESM 支持，与 Vite 同源的测试框架
+- **编码规范**：ESLint + @antfu/eslint-config — lint + 格式化一体（免 Prettier），内置 pnpm catalog 规则
+- **Git Hooks**：lefthook — 一个 Go 二进制覆盖钩子管理 + staged 文件过滤
+- **提交规范**：commitlint — 共享 Conventional Commits 配置（cz-git 风格）
 - **产物校验**：publint + arethetypeswrong
 
 ## 目录结构
@@ -27,6 +30,7 @@ packages/
 pnpm install
 pnpm build       # 构建所有包
 pnpm test        # 单元测试（Vitest）
+pnpm lint        # ESLint 检查（lint + 格式化）
 pnpm check:pkg   # 构建 + 产物校验（publint + attw）
 pnpm dev         # watch 模式
 ```

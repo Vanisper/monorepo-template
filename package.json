@@ -1,25 +1,33 @@
 {
   "name": "monorepo-template",
-  "private": true,
   "type": "module",
+  "private": true,
+  "packageManager": "pnpm@11.24.0",
   "engines": {
     "node": ">=22.18.0",
     "pnpm": ">=11.0.0"
   },
-  "packageManager": "pnpm@11.24.0",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo watch build",
     "check:pkg": "turbo run check:pkg",
     "test": "turbo run test",
     "version": "changeset version",
-    "tag": "changeset tag"
+    "tag": "changeset tag",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "commitlint": "commitlint --edit"
   },
   "//": {
     "scripts.publish:npm": "pnpm build && changeset publish"
   },
   "devDependencies": {
-    "@changesets/cli": "^3.0.1",
-    "turbo": "^2.10.12"
+    "@antfu/eslint-config": "catalog:lint",
+    "@changesets/cli": "catalog:workspace",
+    "@commitlint/cli": "catalog:commit",
+    "@commitlint/config-conventional": "catalog:commit",
+    "eslint": "catalog:lint",
+    "lefthook": "catalog:hooks",
+    "turbo": "catalog:workspace"
   }
 }

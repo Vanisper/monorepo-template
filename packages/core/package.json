@@ -1,11 +1,9 @@
 {
   "name": "@mono/core",
+  "type": "module",
   "version": "0.0.0",
   "description": "核心示例包",
-  "type": "module",
-  "engines": {
-    "node": ">=22.18.0"
-  },
+  "sideEffects": false,
   "exports": {
     ".": {
       "import": {
@@ -24,7 +22,9 @@
   "files": [
     "dist"
   ],
-  "sideEffects": false,
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -35,10 +35,10 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "catalog:",
-    "publint": "catalog:",
-    "tsdown": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "@arethetypeswrong/cli": "catalog:check",
+    "publint": "catalog:check",
+    "tsdown": "catalog:build",
+    "typescript": "catalog:build",
+    "vitest": "catalog:test"
   }
 }

@@ -2,26 +2,45 @@
 
 ## 核心原则：catalog 治理
 
-共享依赖的版本统一在 `pnpm-workspace.yaml` 的 `catalog` 中定义，子包用 `"catalog:"` 引用，保证全仓版本一致。
+共享依赖的版本统一在 `pnpm-workspace.yaml` 中定义，子包用 `"catalog:<组名>"` 引用，保证全仓版本一致。本模板使用**命名 catalog（named catalogs）按职责分组**：
 
 ```yaml
 # pnpm-workspace.yaml
-catalog:
-  typescript: ^7.0.2
-  tsdown: ^0.22.14
-  # ...
+catalogs:
+  build:
+    typescript: ^7.0.2
+    tsdown: ^0.22.14
+  test:
+    vitest: ^4.1.11
+  lint:
+    '@antfu/eslint-config': ^9.5.1
+    eslint: ^10.9.1
+  hooks:
+    lefthook: ^2.1.12
+  commit:
+    '@commitlint/cli': ^21.2.2
+    '@commitlint/config-conventional': ^21.2.2
+  check:
+    '@arethetypeswrong/cli': ^0.18.5
+    publint: ^0.3.24
+  workspace:
+    '@changesets/cli': ^3.0.1
+    turbo: ^2.10.12
 ```
 
 ```json
 // 子包 package.json 中
 {
   "devDependencies": {
-    "tsdown": "catalog:"
+    "tsdown": "catalog:build",
+    "vitest": "catalog:test"
   }
 }
 ```
 
-`pnpm pack` / `pnpm publish` 时 `catalog:` 会被自动替换成真实版本号，无需手动处理。
+分组约定：`build`（打包/编译）、`test`（测试）、`lint`（ESLint 系）、`hooks`（Git 钩子）、`commit`（提交规范）、`check`（产物校验）、`workspace`（monorepo 基础设施：turbo、changesets）。
+
+`pnpm pack` / `pnpm publish` 时 `catalog:<组名>` 会被自动替换成真实版本号，无需手动处理。
 
 ## 何时进 catalog
 

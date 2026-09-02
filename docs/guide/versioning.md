@@ -52,8 +52,10 @@ pnpm tag
 
 `publish:npm` 脚本默认被注释掉了（见根 `package.json` 的 `"//"` 字段）。需要时把它移回 `scripts`：
 
-```json
-"publish:npm": "pnpm build && changeset publish"
+```jsonc
+{
+  "publish:npm": "pnpm build && changeset publish"
+}
 ```
 
 恢复后即可执行。发布前请确认：
@@ -78,8 +80,10 @@ pnpm changeset pre exit
 
 默认是**独立版本**（independent versioning），各包版本号各自演进。如果某些包需要严格对齐版本，在 `.changeset/config.json` 中配置：
 
-```json
-"fixed": [["@mono/core", "@mono/utils"]]
+```jsonc
+{
+  "fixed": [["@mono/core", "@mono/utils"]]
+}
 ```
 
 - `fixed`：组内包永远保持相同版本号（推荐对强关联包使用）

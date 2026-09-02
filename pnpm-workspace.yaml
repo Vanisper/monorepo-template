@@ -1,10 +1,37 @@
-packages:
-  - "packages/*"
+minimumReleaseAgeExcludePrune: true
+minimumReleaseAgeExclude:
+  - '@antfu/eslint-config@9.5.1'
+  - eslint-plugin-pnpm@1.9.1
+  - pnpm-workspace-yaml@1.9.1
 
-# 依赖统一治理：子包中统一用 "catalog:" 引用，避免版本漂移
-catalog:
-  typescript: ^7.0.2
-  tsdown: ^0.22.14
-  vitest: ^4.1.11
-  publint: ^0.3.24
-  "@arethetypeswrong/cli": ^0.18.5
+trustPolicy: no-downgrade
+shellEmulator: true
+
+packages:
+  - 'packages/*'
+
+# pnpm 默认拦截依赖的安装脚本，此处放行：lefthook 需要 postinstall 下载/链接二进制
+allowBuilds:
+  lefthook: true
+
+# 依赖统一治理：按职责分组为命名 catalog，引用时写 "catalog:<组名>"
+catalogs:
+  build:
+    tsdown: ^0.22.14
+    typescript: ^7.0.2
+  check:
+    '@arethetypeswrong/cli': ^0.18.5
+    publint: ^0.3.24
+  commit:
+    '@commitlint/cli': ^21.2.2
+    '@commitlint/config-conventional': ^21.2.2
+  hooks:
+    lefthook: ^2.1.12
+  lint:
+    '@antfu/eslint-config': ^9.5.1
+    eslint: ^10.9.1
+  test:
+    vitest: ^4.1.11
+  workspace:
+    '@changesets/cli': ^3.0.1
+    turbo: ^2.10.12

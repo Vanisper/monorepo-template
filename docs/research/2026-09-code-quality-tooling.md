@@ -236,10 +236,10 @@ ESLint 是当前唯一「全场景生产就绪」的 lint 引擎（Vue/Svelte/As
    catalog:
      # ...已有
      eslint: ^10.9.1
-     "@antfu/eslint-config": ^9.5.1
+     '@antfu/eslint-config': ^9.5.1
      lefthook: ^2.1.12
-     "@commitlint/cli": ^21.2.2
-     "@commitlint/config-conventional": ^21.2.2
+     '@commitlint/cli': ^21.2.2
+     '@commitlint/config-conventional': ^21.2.2
    ```
 
 2. **根 package.json**：
@@ -274,7 +274,7 @@ ESLint 是当前唯一「全场景生产就绪」的 lint 引擎（Vue/Svelte/As
    pre-commit:
      commands:
        lint:
-         glob: "*.{js,mjs,ts,json,jsonc,yaml,yml,toml,md}"
+         glob: '*.{js,mjs,ts,json,jsonc,yaml,yml,toml,md}'
          staged_files: true
          run: pnpm eslint --fix {staged_files}
    commit-msg:
@@ -302,8 +302,8 @@ ESLint 是当前唯一「全场景生产就绪」的 lint 引擎（Vue/Svelte/As
 
    ```yaml
    oxlint: ^1.81.0
-   oxlint-tsgolint: ^7.0.2001   # type-aware 需要
-   oxfmt: ^0.66.0               # beta，未 GA
+   oxlint-tsgolint: ^7.0.2001 # type-aware 需要
+   oxfmt: ^0.66.0 # beta，未 GA
    ```
 
 2. **根 package.json**：

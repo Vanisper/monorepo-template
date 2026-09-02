@@ -1,0 +1,9 @@
+packages:
+  - "packages/*"
+
+# 依赖统一治理：子包中统一用 "catalog:" 引用，避免版本漂移
+catalog:
+  typescript: ^7.0.2
+  tsdown: ^0.22.14
+  publint: ^0.3.24
+  "@arethetypeswrong/cli": ^0.18.5

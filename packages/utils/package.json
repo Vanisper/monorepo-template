@@ -1,0 +1,45 @@
+{
+  "name": "@mono/utils",
+  "version": "0.0.0",
+  "description": "示例包（示例，演示对 @mono/core 的 workspace 依赖）",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "check:pkg": "publint && attw --pack ."
+  },
+  "dependencies": {
+    "@mono/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "catalog:",
+    "publint": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  }
+}

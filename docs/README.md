@@ -32,6 +32,7 @@ docs/
 | `0001-build-tool-tsdown.md` | ✅ 已完成 | 为什么选 tsdown 而非 tsup/unbuild/Rollup/Vite lib mode；isolatedDeclarations 取舍；来源引用 research 调研 |
 | `0002-versioning-changesets.md` | ✅ 已完成 | 为什么选 Changesets 而非 conventional-commits 系；分步发布设计（内部只到 tag）；已知短板（catalog 变更 bump 盲区） |
 | `0003-monorepo-turbo.md` | ✅ 已完成 | 为什么用 pnpm + Turborepo 组合而非 Nx/Lerna/纯 pnpm v12 编排；未来迁回 pnpm 内置编排的触发条件 |
+| `0004-code-quality-tooling.md` | ✅ 已完成 | 编码规范工具链四职责（Lint/Format/Hooks/Commit）选型：ESLint+antfu+lefthook+commitlint、踩坑记录（typescript 检测陷阱、静默 fix、staged_files 陷阱、静默 fix 的隐患） |
 
 ### research/ 调研原始资料
 

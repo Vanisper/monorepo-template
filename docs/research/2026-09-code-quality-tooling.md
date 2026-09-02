@@ -7,11 +7,31 @@
 
 ## 〇、2025–2026 年生态大背景
 
-- **ESLint v10 于 2026-02-06 正式发布**（当前 10.9.1，2026-08-24）。eslintrc 体系被彻底移除（`.eslintrc.*`、`.eslintignore` 不再生效），flat config 成为唯一配置形态；配置查找改为「从被 lint 文件所在目录向上查找」，天然利好 monorepo 多配置；要求 Node `^20.19.0 || ^22.13.0 || >=24`。来源：[ESLint v10.0.0 released](https://eslint.org/blog/2026/02/eslint-v10.0.0-released/)、[What's coming in ESLint v10.0.0](https://eslint.org/blog/2025/10/whats-coming-in-eslint-10.0.0/)。
-- **oxc 系全面成熟**：oxlint 1.x 稳定版（当前 1.81.0）规则总数达 870+；**类型感知 lint 于 2026-07-22 宣布稳定**（tsgolint v7，基于 tsgo，覆盖 typescript-eslint 61 条 type-aware 规则中的 59 条）；oxfmt 于 2026-02-24 达到 beta（100% 通过 Prettier 的 JS/TS 一致性测试），尚未 GA。来源：[Type-Aware Linting Stable](https://oxc.rs/blog/2026-07-22-type-aware-linting-stable)、[Oxfmt Beta](https://oxc.rs/blog/2026-02-24-oxfmt-beta)、[oxlint rules](https://oxc.rs/docs/guide/usage/linter/rules.html)。
-- **Biome v2（codename Biotype）2025-06 发布**（当前 2.5.11，2026-08-27），提供了不依赖 TypeScript 编译器的 type-aware lint；v2.3（2025-10）起支持 Vue / Svelte / Astro 全文件（HTML/CSS/JS 部分），**但截至 v2.5.11 仍是 🟡 experimental，需显式开启 `html.experimentalFullSupportEnabled`，跨语言规则存在已知误报，官方明确不建议在生产项目直接使用**。来源：[Biome v2](https://biomejs.dev/blog/biome-v2/)、[Biome v2.3](https://biomejs.dev/blog/biome-v2-3/)、[Biome language-support 文档](https://biomejs.dev/internals/language-support/)。
-- **Prettier 3.9（2026-06）** 持续活跃（当前 3.9.6），社区地位稳固但面临 oxfmt / Biome 的性能挑战。来源：[Prettier 3.9 blog](https://prettier.io/blog/2026/06/27/3.9.0)。
-- **Cloudflare 2026-06 收购 VoidZero**（Vite / Vitest / Rolldown / Oxc 的母公司），oxc 系的长期投入有背书。来源见同目录 `2026-09-monorepo-tech-selection.md`。
+- **ESLint v10 于 2026-02-06 正式发布**（当前 10.9.1，2026-08-24）
+  - eslintrc 体系被彻底移除（`.eslintrc.*`、`.eslintignore` 不再生效），flat config 成为唯一配置形态
+  - 配置查找改为「从被 lint 文件所在目录向上查找」，天然利好 monorepo 多配置
+  - 要求 Node `^20.19.0 || ^22.13.0 || >=24`
+  - 来源：[ESLint v10.0.0 released](https://eslint.org/blog/2026/02/eslint-v10.0.0-released/)、[What's coming in ESLint v10.0.0](https://eslint.org/blog/2025/10/whats-coming-in-eslint-10.0.0/)
+
+- **oxc 系全面成熟**
+  - oxlint 1.x 稳定版（当前 1.81.0）规则总数达 870+
+  - **类型感知 lint 于 2026-07-22 宣布稳定**（tsgolint v7，基于 tsgo，覆盖 typescript-eslint 61 条 type-aware 规则中的 59 条）
+  - oxfmt 于 2026-02-24 达到 beta（100% 通过 Prettier 的 JS/TS 一致性测试），尚未 GA
+  - 来源：[Type-Aware Linting Stable](https://oxc.rs/blog/2026-07-22-type-aware-linting-stable)、[Oxfmt Beta](https://oxc.rs/blog/2026-02-24-oxfmt-beta)、[oxlint rules](https://oxc.rs/docs/guide/usage/linter/rules.html)
+
+- **Biome v2（codename Biotype）2025-06 发布**（当前 2.5.11，2026-08-27）
+  - 提供了不依赖 TypeScript 编译器的 type-aware lint
+  - v2.3（2025-10）起支持 Vue / Svelte / Astro 全文件（HTML/CSS/JS 部分）
+  - **但截至 v2.5.11 仍是 🟡 experimental**：需显式开启 `html.experimentalFullSupportEnabled`，跨语言规则存在已知误报，官方明确不建议在生产项目直接使用
+  - 来源：[Biome v2](https://biomejs.dev/blog/biome-v2/)、[Biome v2.3](https://biomejs.dev/blog/biome-v2-3/)、[Biome language-support 文档](https://biomejs.dev/internals/language-support/)
+
+- **Prettier 3.9（2026-06）持续活跃**（当前 3.9.6）
+  - 社区地位稳固，但面临 oxfmt / Biome 的性能挑战
+  - 来源：[Prettier 3.9 blog](https://prettier.io/blog/2026/06/27/3.9.0)
+
+- **Cloudflare 2026-06 收购 VoidZero**（Vite / Vitest / Rolldown / Oxc 的母公司）
+  - oxc 系的长期投入有背书
+  - 来源见同目录 `2026-09-monorepo-tech-selection.md`
 
 ---
 
@@ -51,7 +71,14 @@
 - 开箱覆盖 JS/TS/Vue/JSONC/YAML/TOML/Markdown，内置 `@stylistic` 风格规则 + import 排序，**设计上即「不用 Prettier」**（格式化由 ESLint fix 完成）。
 - 内置 eslint-plugin-pnpm，含 `pnpm/json-enforce-catalog`、`pnpm/json-valid-catalog` 等规则——与本模板的 catalog 治理策略直接契合。
 - 自带 vitest 规则（`@vitest/eslint-plugin`）、sortPackageJson、sortTsconfig 等，均为本模板用得上的能力。
-- 注意：这是 **antfu 个人化预设**，README 明示升级时应 review 规则变化（不视为 breaking change）；可选 type-aware（`typescript: { tsconfigPath: ... }`）；格式化 CSS/HTML/MD 需另开 `formatters` 选项（底层走 Prettier/dprint）。来源：[antfu/eslint-config README](https://github.com/antfu/eslint-config)。
+**@antfu/eslint-config** —— 对 antfu 生态偏好者的「一行接入」方案。
+- 开箱覆盖 JS/TS/Vue/JSONC/YAML/TOML/Markdown，内置 `@stylistic` 风格规则 + import 排序，**设计上即「不用 Prettier」**（格式化由 ESLint fix 完成）。
+- 内置 eslint-plugin-pnpm，含 `pnpm/json-enforce-catalog`、`pnpm/json-valid-catalog` 等规则——与本模板的 catalog 治理策略直接契合。
+- 自带 vitest 规则（`@vitest/eslint-plugin`）、sortPackageJson、sortTsconfig 等，均为本模板用得上的能力。
+- 注意：这是 **antfu 个人化预设**，README 明示升级时应 review 规则变化（不视为 breaking change）。
+  - 可选 type-aware（`typescript: { tsconfigPath: ... }`）
+  - 格式化 CSS/HTML/MD 需另开 `formatters` 选项（底层走 Prettier/dprint）
+  - 来源：[antfu/eslint-config README](https://github.com/antfu/eslint-config)。
 
 **oxlint + tsgolint** —— 性能向首选，type-aware 已稳定。
 - `pnpm add -D oxlint oxlint-tsgolint@7 && oxlint --type-aware` 即可启用；59/61 type-aware 规则覆盖意味着 `no-floating-promises`、`no-unsafe-*` 家族等关键规则齐全。
@@ -59,8 +86,9 @@
 - 短板：没有 ESLint 式插件运行时，生态长尾规则（如某些团队自研规则）仍需 ESLint；antfu config 作者也明确表示在等 oxlint 集成的阻塞项解决。来源：[antfu/eslint-config FAQ](https://github.com/antfu/eslint-config)。
 
 **Biome** —— 一体化但生态隔离。
-- linter + formatter + import 排序一个二进制搞定，配置极简；v2.3 起支持 Vue/Svelte/Astro 全文件（HTML/CSS/JS 部分，含 template），**但为 🟡 experimental**（需显式开启 `html.experimentalFullSupportEnabled`，v2.5 跨语言规则仍可能误报，官方不建议生产直接使用）。
-- 短板：无插件系统，规则不可扩展；与 ESLint 生态互不相通，对「antfu 生态偏好」的用户意味着放弃整个 ESLint 插件资产。来源：[Biome Roadmap 2026](https://biomejs.dev/blog/roadmap-2026/)。
+- linter + formatter + import 排序一个二进制搞定，配置极简
+  - v2.3 起支持 Vue/Svelte/Astro 全文件（HTML/CSS/JS 部分，含 template），**但为 🟡 experimental**：需显式开启 `html.experimentalFullSupportEnabled`，v2.5 跨语言规则仍可能误报，官方不建议生产直接使用
+- 短板：无插件系统，规则不可扩展；与 ESLint 生态互不相通。来源：[Biome Roadmap 2026](https://biomejs.dev/blog/roadmap-2026/)。
 
 ---
 
@@ -82,7 +110,8 @@
 
 ### 2.2 结论
 
-- **oxfmt 尚未 GA（2026-02 达 beta，当前 0.x）**，但已被 vuejs/core、vercel/turborepo、sentry 等采用，且对 Prettier 行为完全兼容（官方与 Prettier 团队协同收敛差异）。追求性能可先行试用；追求稳妥则仍用 Prettier，后续 `oxfmt --migrate prettier` 平滑切换。
+- **oxfmt 尚未 GA（2026-02 达 beta，当前 0.x）**，但已被 vuejs/core、vercel/turborepo、sentry 等采用，且对 Prettier 行为完全兼容（官方与 Prettier 团队协同收敛差异）。
+  - 追求性能可先行试用；追求稳妥则仍用 Prettier，后续 `oxfmt --migrate prettier` 平滑切换。
 - **Biome 路线下 formatter 与 linter 一体，是依赖最少的一条路**（零独立 formatter 依赖）；antfu 路线下 JS/TS 格式化可直接交给 ESLint（`@stylistic`），仅 CSS/HTML/MD 等用 `formatters` 选项或 Prettier 兜底。
 
 ---
@@ -102,7 +131,11 @@
 要点：
 - **simple-git-hooks + lint-staged** 是 antfu config README 官方示例组合（`"pre-commit": "pnpm lint-staged"`）。来源：[antfu/eslint-config Lint Staged 章节](https://github.com/antfu/eslint-config)。
 - husky 认知度高但已一年多无发版，且引入 `.husky/` 目录与 `prepare` 脚本的开销；simple-git-hooks 同等能力零依赖。
-- **lefthook 一个工具覆盖「钩子管理 + staged 文件过滤」两件事**（内置 `glob` / `staged_files`，即 lint-staged 的核心能力），「simple-git-hooks + lint-staged 两个 JS 依赖」可合并为「lefthook 一个 Go 二进制」，配置从 package.json 两处（`simple-git-hooks` + `lint-staged` 两处配置）收敛为一份 `lefthook.yml`，依赖数从 2 减到 1；且 Go 二进制与 Node 生态解耦、支持并行/分组。追求「依赖最少」时 lefthook 更优，simple-git-hooks + lint-staged 组合与之等价。本模板选用 lefthook。
+- **lefthook 一个工具覆盖「钩子管理 + staged 文件过滤」两件事**（内置 `glob` / `staged_files`，即 lint-staged 的核心能力）：
+  - 「simple-git-hooks + lint-staged 两个 JS 依赖」可合并为「lefthook 一个 Go 二进制」，依赖数从 2 减到 1
+  - 配置从 package.json 两处（`simple-git-hooks` + `lint-staged` 两处配置）收敛为一份 `lefthook.yml`
+  - Go 二进制与 Node 生态解耦、支持并行/分组
+  - 本模板选用 lefthook
 - lint-staged 与 lint/format 的组合：`"*.{js,ts,json,yaml,md}": "eslint --fix"`（antfu 路线）或 `"*": "oxfmt --no-error-on-unmatched-pattern"`（oxfmt 官方迁移指引推荐写法）。
 
 ---
@@ -110,8 +143,16 @@
 ## 四、commit message 规范
 
 - **commitlint 当前 21.2.2（2026-08-13）**，仍在常规维护（conventional-changelog 组织）。来源：[npm @commitlint/cli](https://www.npmjs.com/package/@commitlint/cli)。
-- 用户已有共享配置（Vanisper/schema-store 的 `.commitlintrc.yaml`）：基于 `@commitlint/config-conventional` + 自定义 `parserPreset.headerPattern`（兼容 emoji 左/中/右三位置）+ cz-git 风格 `prompt`（中文交互、`useEmoji: true`、`emojiAlign: left`、自定义 type-enum 含 `examples`/`init` 等）。
-- 接入方式：模板根目录放 `.commitlintrc.yaml`（可直接复用该共享配置内容），配 `commit-msg` 钩子 `commitlint --edit $1`；如需交互式提交可加 cz-git（`czg` CLI）。commitlint 与 Changesets 无冲突（changeset 提交走 `chore: version packages` 等标准 type 即可通过 type-enum——注意 `version` 不在现有 enum 中，如让机器人提交需留意，或将 CI 版本提交跳过校验）。
+- 用户已有共享配置（Vanisper/schema-store 的 `.commitlintrc.yaml`）：
+  - 基于 `@commitlint/config-conventional` + 自定义 `parserPreset.headerPattern`（兼容 emoji 左/中/右三位置）
+  - cz-git 风格 `prompt`（中文交互、`useEmoji: true`、`emojiAlign: left`、自定义 type-enum 含 `examples`/`init` 等）
+- 接入方式：
+  - 模板根目录放 `.commitlintrc.yaml`（可直接复用该共享配置内容）
+  - 配 `commit-msg` 钩子 `commitlint --edit $1`
+  - 如需交互式提交可加 cz-git（`czg` CLI）
+- commitlint 与 Changesets 无冲突
+  - changeset 提交走 `chore: version packages` 等标准 type 即可通过 type-enum
+  - 注意 `version` 不在现有 enum 中，如让机器人提交需留意，或将 CI 版本提交跳过校验
 
 ---
 

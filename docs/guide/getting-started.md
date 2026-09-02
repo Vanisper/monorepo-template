@@ -86,6 +86,19 @@ turbo 的任务依赖拓扑定义在根 `turbo.json`：
 | lefthook | Git hooks（pre-commit / commit-msg / pre-push） | 根 `lefthook.yml` |
 | commitlint | commit message 规范（共享 cz-git 配置） | 根 `.commitlintrc.yaml` |
 | cspell | 拼写检查 | 根 `cspell.json` |
+| EditorConfig | 编辑器层的基础格式约定（缩进/换行/编码等） | 根 `.editorconfig` |
+
+### EditorConfig 与 cspell 的引入原因与作用
+
+**EditorConfig**
+- **引入原因**：编辑器层面的基础格式约定，与 lint/formatter 职责不重叠——lint 管「代码风格与潜在 bug」，EditorConfig 管「编辑器如何写入文件」（缩进、换行、编码、行尾空白）。两者覆盖不同层：lint 事后检查 + 修复，EditorConfig 在编辑器保存时就把基本格式弄对，让 lint 少干活
+- **起作用的时机**：在支持 EditorConfig 的编辑器（VS Code、JetBrains IDE、Sublime 等）保存文件时自动应用；根 `.editorconfig` 的 4 项配置（2 空格缩进、LF 换行、UTF-8、删除行尾空白 + 末尾换行）对所有文件生效，不区分语言
+- **作用**：从源头上统一基础格式，减少「编辑器写入的格式与 lint 期望的格式不一致」的问题（比如有人在编辑器里用 tab、有人用空格），让 lint 只需要处理逻辑层面的规则
+
+**cspell**
+- **引入原因**：代码中的英文拼写错误（标识符、注释、文档里的英文单词）拼写错误没有工具能自动检查——TypeScript 只管类型对不对，ESLint 不管拼写对不对，cspell 补上这一环
+- **起作用的时机**：手动跑 `pnpm spell`，或 CI 中 `cspell lint`；编辑器装 cspell 插件后可在写代码时实时提示
+- **作用**：捕获英文拼写错误（`connnection` → `connection` 等）；本模板以中文文档为主，cspell 主要价值是英文标识符和技术术语的拼写——词典已覆盖项目技术术语（tsdown、oxlint、lefthook 等）
 
 ### Hooks 工作流
 

@@ -156,8 +156,9 @@
 
 | 工具 | 最新版本 | 是否需要 |
 |---|---|---|
-| cspell | 10.2.0 | 可选。库定位 + 英文命名场景下价值中等；开了也基本零成本（`cspell lint` + CI），可后置 |
-| EditorConfig | —（编辑器标准） | 建议。`.editorconfig` 一份 4 行配置，与 antfu config / oxfmt（beta 起支持读 `insert_final_newline`）均兼容 |
+| cspell | 10.2.0 | ✅ 已接入。英文拼写检查无 lint 工具能覆盖；以中文文档为主时价值有限（英文标识符/术语拼写为主），词典维护成本低 |
+| EditorConfig | —（编辑器标准） | ✅ 已接入。编辑器保存时统一基础格式（缩进/换行/编码），与 lint 职责不重叠、零依赖，装完即生效 |
+| EditorConfig | —（编辑器标准） | ✅ 已接入。编辑器保存时统一基础格式（缩进/换行/编码），与 lint 职责不重叠、零依赖，装完即生效 |
 | stylelint | 17.14.1 | **不需要**。本模板为纯 TS 库、无 CSS；若未来出现样式文件，antfu config 的 `formatters.css` 只管格式化，届时再评估 stylelint |
 
 ---
@@ -387,7 +388,7 @@ ESLint 是当前唯一「全场景生产就绪」的 lint 引擎（Vue/Svelte/As
 
 4. **已知代价**：无插件系统；type-aware 规则覆盖不及 typescript-eslint（内部库由 CI 的构建链路兜底）；Vue 支持 experimental（本模板无 .vue 文件，不受影响）
 
-**对 cspell / EditorConfig 的建议**：`.editorconfig` 直接加（无依赖）；cspell 可后置，需要时 `cspell lint` 进 CI 即可。
+**对 cspell / EditorConfig 的建议**（已接入，记录引入原因）：`.editorconfig` 直接加（无依赖，编辑器保存时统一基础格式）；cspell 补充 lint 无法覆盖的英文拼写检查，词典覆盖项目技术术语即可零成本维护。
 
 ---
 

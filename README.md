@@ -10,6 +10,7 @@
 - **任务编排**：Turborepo — 构建拓扑排序 + 缓存
 - **打包**：tsdown — 基于 Rolldown 的 TS 库打包器（ESM/CJS 双格式 + oxc 极速 d.ts）
 - **版本管理**：Changesets v3 — changeset → version → tag → 可选 npm 发布（分步流程）
+- **测试**：Vitest — 原生 TS/ESM 支持，与 Vite 同源的测试框架
 - **产物校验**：publint + arethetypeswrong
 
 ## 目录结构
@@ -25,6 +26,7 @@ packages/
 ```bash
 pnpm install
 pnpm build       # 构建所有包
+pnpm test        # 单元测试（Vitest）
 pnpm check:pkg   # 构建 + 产物校验（publint + attw）
 pnpm dev         # watch 模式
 ```

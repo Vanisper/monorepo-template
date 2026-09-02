@@ -7,6 +7,9 @@
     },
     "check:pkg": {
       "dependsOn": ["build"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
     }
   }
 }

@@ -39,13 +39,15 @@ mkdir -p packages/example/src
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "check:pkg": "publint && attw --pack ."
+    "check:pkg": "publint && attw --pack .",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "catalog:",
     "publint": "catalog:",
     "tsdown": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
 ```

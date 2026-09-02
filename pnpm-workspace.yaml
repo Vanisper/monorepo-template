@@ -5,5 +5,6 @@ packages:
 catalog:
   typescript: ^7.0.2
   tsdown: ^0.22.14
+  vitest: ^4.1.11
   publint: ^0.3.24
   "@arethetypeswrong/cli": ^0.18.5

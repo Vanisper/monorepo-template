@@ -103,10 +103,12 @@ import { defineConfig } from 'tsdown'
 export default defineConfig({
   entry: ['src/index.ts'],
   format: ['esm', 'cjs'],
-  dts: { oxc: true },
+  dts: true,
   sourcemap: true,
 })
 ```
+
+`dts: true` 即可——tsdown 会从 tsconfig 的 `isolatedDeclarations` 自动检测并启用 oxc 生成 d.ts。**不要写 `dts: { oxc: true }` 或 `dts: { isolatedDeclarations: true }`**：这两个键分别在 rolldown-plugin-dts 0.27+ 与 tsdown 0.23+ 中已被移除（本项目踩过的坑）。
 
 ## 5. 写代码并构建
 

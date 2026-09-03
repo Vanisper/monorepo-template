@@ -1,7 +1,7 @@
 {
   "name": "@mono/ui-vue",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "UI 域 vue 场景组件包",
   "sideEffects": [
     "**/*.css"

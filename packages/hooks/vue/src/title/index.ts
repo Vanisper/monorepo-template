@@ -55,9 +55,9 @@ export interface TitleManager {
    */
   setOverrideTitle: (title: Title) => void
   /**
-   * 设置应用主标题
+   * 设置应用主标题（替换标题源）
    *
-   * 注意：传静态值会切断此前的 ref/getter 响应式绑定（getter 被替换为静态值）
+   * 传静态值：切断此前的 ref/getter 响应式绑定；传 ref/getter：建立新的响应式绑定
    */
   setAppTitle: (title: Title) => void
   /** 开关动态标题 */

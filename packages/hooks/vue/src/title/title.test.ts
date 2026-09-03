@@ -66,16 +66,20 @@ describe('createTitleManager', () => {
     expect(manager.finalTitle.value).toBe('示例应用')
   })
 
-  it('setter 会切断响应式绑定：setAppTitle 后 ref/getter 不再生效', () => {
+  it('setter 替换标题源：静态值切断绑定，getter 重新建立绑定', () => {
     const unread = ref(3)
     const manager = createTitleManager({
       appTitle: () => `${unread.value} 条新消息 · 示例应用`,
     })
     expect(manager.finalTitle.value).toBe('3 条新消息 · 示例应用')
 
-    // setter 用静态值替换 getter，响应式绑定被切断
+    // 传静态值：切断此前的响应式绑定
     manager.setAppTitle('管理系统')
     unread.value = 5
     expect(manager.finalTitle.value).toBe('管理系统')
+
+    // 传 getter：重新建立响应式绑定
+    manager.setAppTitle(() => `${unread.value} 条新消息 · 管理系统`)
+    expect(manager.finalTitle.value).toBe('5 条新消息 · 管理系统')
   })
 })

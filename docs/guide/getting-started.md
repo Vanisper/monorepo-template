@@ -33,6 +33,8 @@ monorepo-template/
 │   ├── ui/                # UI 域（业务组件/大组件）
 │   ├── hooks/             # hooks 域（逻辑复用）
 │   └── tools/             # 工具域（平台无关基础库）
+├── playgrounds/
+│   └── vue/               # vue-playground —— @mono/ui-vue / @mono/hooks-vue 的三方引用验证
 └── examples/
     └── demo/              # 示例包
         ├── core/          # @mono/core —— 示例核心包

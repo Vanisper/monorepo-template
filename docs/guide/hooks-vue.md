@@ -12,7 +12,7 @@ hooks 域承载跨场景的逻辑复用（与 ui 域分工：hooks 无渲染，u
 | `keep-alive` | KeepAlive 缓存列表 + 路由守卫 | vue、vue-router* |
 | `iframe` | iframe 多页签管理（LRU）+ 路由守卫 | vue、vue-router* |
 | `mobile-adaptation` | pc/mobile 模式判定（UA 优先 + 宽度阈值兜底） | vue |
-| `route-meta` | 上述守卫共享的路由 Meta 键配置与匹配工具 | vue-router* |
+| `_route-meta` | 上述守卫共享的路由 Meta 键配置与匹配工具（下划线前缀：工具模块而非 hook，排序上前置） | vue-router* |
 
 带 * 者对 vue-router 仅为 **type-only 依赖**：守卫的运行时代码不 import vue-router（`Router` 实例由调用方传入），因此 vue-router 声明为 **optional peerDependency**——不用守卫的项目无需安装。
 
@@ -51,8 +51,8 @@ export {}
 | `changeFlag` / `resetFlag` | `toggle` / `reset` | 命名向社区惯例靠拢 |
 | `uniqueList.clean()` | `clear()` | 同上 |
 | `createKeepAliveGuard(handlers, metaKeys)` | 同名同形 | 保留「配置 → 安装」两段式，守卫确有配置期与安装期 |
-| `KeepAliveMetaKeys`（iframe 内重复定义） | `RouteMetaKeys`（route-meta 模块） | 去重，名称不再绑定 keep-alive |
-| `isTargetRouteMatch`（两处重复） | `matchRouteTarget`（route-meta 模块导出） | 去重；`config` 从 `any` 收紧为 `unknown` |
+| `KeepAliveMetaKeys`（iframe 内重复定义） | `RouteMetaKeys`（`_route-meta` 模块） | 去重，名称不再绑定 keep-alive |
+| `isTargetRouteMatch`（两处重复） | `matchRouteTarget`（`_route-meta` 模块导出） | 去重；`config` 从 `any` 收紧为 `unknown` |
 | `MOBILE_WIDTH_THRESHOLD = 1024` 魔法值 | `thresholdWidth` 配置项（默认 1024） | 参数化 |
 | `mode` 初始恒为 `'pc'` | 按 UA 初始化 | 移动 UA 在 mounted 前状态也正确；UA 判定加 SSR 防御 |
 

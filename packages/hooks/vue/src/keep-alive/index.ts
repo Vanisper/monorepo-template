@@ -1,4 +1,4 @@
-import type { RouteMetaKeys } from '../route-meta'
+import type { RouteMetaKeys } from '../_route-meta'
 import type { UniqueListManager } from '../unique-list'
 import { createUniqueList } from '../unique-list'
 

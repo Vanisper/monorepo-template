@@ -120,6 +120,7 @@ pre-push: pnpm lint # 本地兜底，CI 不可用时推前做全仓 lint
 
 - **lefthook 钩子**：`pnpm install` 时自动安装（lefthook 的 postinstall 脚本自动执行 `lefthook install`，无需手动执行；但需在 `pnpm-workspace.yaml` 配置 `allowBuilds` 放行（pnpm 11 默认拦截依赖的 postinstall 脚本）
 - **ESLint TS 检测陷阱**：antfu config 通过 `isPackageExists("typescript")` 从根目录检测 TS 项目，typescript 只在子包中时根目录检测不到 → 所有 .ts 文件被静默忽略；需在 `eslint.config.mjs` 显式 `typescript: true` 强制开启
+- **ESLint Vue 检测陷阱（同类）**：antfu config 同样从根目录检测 `vue` 依赖，vue 只在子包中时检测不到 → **.vue 文件完全不被 lint**（报 no matching configuration）；需显式 `vue: true`。两个检测是同一个陷阱的两个实例：antfu config 的自动检测只认根目录依赖，monorepo 里框架依赖通常在子包，所以 typescript / vue 都必须显式开启
 
 ### 静默 --fix 的隐患
 

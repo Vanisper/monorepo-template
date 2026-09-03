@@ -139,5 +139,3 @@ pnpm changeset pre exit
 
 - **version PR 不触发 CI**：它由 `GITHUB_TOKEN` 创建，GitHub 不会为 token 创建的 PR 运行其他 workflow——这是 GitHub 的限制。如果 main 的分支保护要求状态检查通过才能合并，version PR 会卡在这一步，需要配 PAT（Personal Access Token）替换 `github-token`，或接受手动放行
 - 自动创建的 Release 内容是各包 CHANGELOG 的条目——这正是「一个包一个 changeset 文件、写库级别描述」的价值所在
-
-## 常用操作

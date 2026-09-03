@@ -129,6 +129,15 @@ pnpm changeset pre exit
 - **永久 ignore**（示例/教学包）：`@mono/core`、`@mono/utils` 这类占位示例包，本来就不该有版本与 tag
 - **暂时 ignore**（未就绪包）：包还没有真实内容时（如当前只有占位的 `@mono/ui-vue`），先加入 ignore 避免无意义的 0.0.0 tag；等有真实内容要发布时，从列表中移除该行即可
 
+### tag 的语义与「只打 bump 的包」
+
+`changeset tag`（git-tag）的语义是**给所有非 ignore 包的当前版本打 tag**，没有「只给本次 bump 的包打 tag」的开关。两种机制的区别：
+
+- `changeset publish`：只给 bump 的包打 tag（语义精确），但附带 npm 发布——本模板不发 npm，用不了
+- `changeset git-tag`：给所有非 ignore 包打 tag——首次发布时会把全仓包都 tag 一遍
+
+**本模板的处理惯例**：ignore 过滤掉不该进版本流的包（示例包、未就绪包）；偶有无用 tag 手动删除（`git push origin --delete <tag>`）。如果以后确实在意「只打 bump」，可以用 `changeset publish-plan` 输出本次 bump 的包列表，写自定义 release 脚本只给这些包打 tag（有路可走，暂不实现）。
+
 ## 跳过版本（不发版场景）
 
 如果一组变更只影响内部脚本/配置，无实际代码变更，在 changeset 文件中省略包名即可（changeset 会提示你选哪些包）。

@@ -33,8 +33,9 @@ jobs:
         # - main 上有未消费的 changeset → 自动创建/更新「chore: version packages」PR（跑 changeset version）
         # - 该 PR 被合并后 → 执行 publish-script（只打 tag、不发 npm），并推送 tag、按各包 CHANGELOG 内容创建 GitHub Release
         uses: changesets/action@v2.1.1
+        # 注意：publish-script 必须是单一命令——changesets/action 按空格切分参数（不经 shell），不能写 && 串联命令；故用根脚本 release 封装
         with:
-          publish-script: pnpm build && pnpm changeset tag
+          publish-script: pnpm release
           commit-message: 'chore: version packages'
           pr-title: 'chore: version packages'
           create-github-releases: true

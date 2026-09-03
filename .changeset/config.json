@@ -6,5 +6,10 @@
   "linked": [],
   "access": "public",
   "baseBranch": "main",
-  "updateInternalDependencies": "patch"
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "@mono/core",
+    "@mono/utils",
+    "@mono/ui-vue"
+  ]
 }

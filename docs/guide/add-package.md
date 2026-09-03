@@ -43,11 +43,11 @@ mkdir -p packages/example/src
     "test": "vitest run"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "catalog:",
-    "publint": "catalog:",
-    "tsdown": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "@arethetypeswrong/cli": "catalog:check",
+    "publint": "catalog:check",
+    "tsdown": "catalog:build",
+    "typescript": "catalog:build",
+    "vitest": "catalog:test"
   }
 }
 ```
@@ -59,6 +59,8 @@ mkdir -p packages/example/src
 - `"sideEffects": false` 帮助 tree-shaking
 
 ## 3. 创建 tsconfig.json
+
+`extends` 路径随包的嵌套深度而定，`packages/example/` 这类平层包用 `../../`：
 
 ```json
 {
@@ -103,7 +105,7 @@ pnpm --filter @mono/example build
 ## 验证
 
 ```bash
-pnpm --filter @mono/example build && pnpm --filter @mono/example check:pkg
+pnpm --filter @mono/example build && pnpm --filter @mono/example test && pnpm --filter @mono/example check:pkg
 ```
 
-两个都绿了就说明没问题。
+三项全绿就说明没问题。

@@ -31,6 +31,7 @@
     "uniapp",
     "vitejs",
     "unplugin",
-    "vite"
+    "vite",
+    "unstub"
   ]
 }

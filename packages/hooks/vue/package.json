@@ -33,7 +33,13 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json"
   },
   "peerDependencies": {
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "vue-router": "^5.3.0"
+  },
+  "peerDependenciesMeta": {
+    "vue-router": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "catalog:check",
@@ -41,6 +47,7 @@
     "tsdown": "catalog:build",
     "typescript": "catalog:build",
     "vitest": "catalog:test",
-    "vue": "catalog:web"
+    "vue": "catalog:web",
+    "vue-router": "catalog:web"
   }
 }

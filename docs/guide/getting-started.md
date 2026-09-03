@@ -30,8 +30,8 @@ monorepo-template/
 ├── tsconfig.base.json        # 所有子包共享的 TS 基线配置
 ├── .changeset/               # 版本管理配置
 ├── packages/                 # 真实包（业务实现地，按域分）
-│   ├── ui/                # UI 域（业务组件/大组件，按平台分层）
-│   ├── hooks/             # hooks 域（逻辑复用，按平台分层）
+│   ├── ui/                # UI 域（业务组件/大组件）
+│   ├── hooks/             # hooks 域（逻辑复用）
 │   └── tools/             # 工具域（平台无关基础库）
 └── examples/
     └── demo/              # 示例包
@@ -58,7 +58,7 @@ pnpm check:pkg   # publint + attw 应全部全绿
 
 ## 核心概念速览
 
-- **catalog**：`pnpm-workspace.yaml` 中统一管理共享依赖版本，子包用 `"catalog:<组名>"` 引用，避免版本漂移；按职责分组（build / test / lint / hooks / commit / check / workspace）
+- **catalog**：`pnpm-workspace.yaml` 中统一管理共享依赖版本，子包用 `"catalog:<组名>"` 引用，避免版本漂移；按职责分组（build / test / lint / hooks / commit / check / web / workspace）
 - **workspace:***：内部包互相依赖的写法，发布时自动替换为真实版本号
 - **catalog: 协议验证**：`pnpm pack` 时会自动替换成真实版本号，无需担心发布产物
 

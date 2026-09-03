@@ -38,7 +38,7 @@ catalogs:
 }
 ```
 
-分组约定：`build`（打包/编译）、`test`（测试）、`lint`（ESLint 系）、`hooks`（Git 钩子）、`commit`（提交规范）、`check`（产物校验）、`workspace`（monorepo 基础设施：turbo、changesets）。
+分组约定：`build`（打包/编译）、`test`（测试）、`lint`（ESLint 系）、`hooks`（Git 钩子）、`commit`（提交规范）、`check`（产物校验）、`web`（前端框架：vue 等）、`workspace`（monorepo 基础设施：turbo、changesets）。
 
 `pnpm pack` / `pnpm publish` 时 `catalog:<组名>` 会被自动替换成真实版本号，无需手动处理。
 

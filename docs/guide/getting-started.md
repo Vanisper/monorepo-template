@@ -14,6 +14,7 @@ pnpm install   # 安装依赖（workspace 内所有包一起装）
 pnpm build     # turbo 按依赖拓扑并行构建所有包
 pnpm dev       # turbo watch，改源码自动重建
 pnpm test      # Vitest 单元测试（依赖包会先自动构建）
+pnpm typecheck # 类型检查（tsc --noEmit，tsc 检查源码类型）
 pnpm lint      # ESLint 全仓检查（含 @stylistic 格式化）
 pnpm lint:fix  # ESLint 全仓检查并自动修复
 pnpm check:pkg # 构建 + publint + attw 产物校验

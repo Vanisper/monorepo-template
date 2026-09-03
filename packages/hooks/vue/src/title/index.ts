@@ -1,3 +1,4 @@
+import type { ComputedRef, Ref } from 'vue'
 import { computed, readonly, ref, watchEffect } from 'vue'
 
 export type Title = string | (() => string)
@@ -13,15 +14,15 @@ export interface TitleManagerOptions {
 
 export interface TitleManager {
   /** 应用主标题（只读） */
-  appTitle: Readonly<ReturnType<typeof ref<string>>>
+  appTitle: Readonly<Ref<string>>
   /** 路由/页面标题（只读） */
-  routeTitle: Readonly<ReturnType<typeof ref<string>>>
+  routeTitle: Readonly<Ref<string>>
   /** 覆盖/自定义标题（只读），如 iframe 内部传出的标题 */
-  overrideTitle: Readonly<ReturnType<typeof ref<string>>>
+  overrideTitle: Readonly<Ref<string>>
   /** 是否启用动态标题（只读） */
-  isDynamicEnable: Readonly<ReturnType<typeof ref<boolean>>>
+  isDynamicEnable: Readonly<Ref<boolean>>
   /** 最终显示标题 */
-  finalTitle: Readonly<ReturnType<typeof computed<string>>>
+  finalTitle: ComputedRef<string>
   /** 设置路由标题（通常在 router.afterEach 调用）；切换路由会顺带清空覆盖标题 */
   setRouteTitle: (title: Title) => void
   /** 设置覆盖标题（iframe 或特殊业务场景） */

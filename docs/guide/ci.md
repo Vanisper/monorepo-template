@@ -20,6 +20,7 @@ checkout → Setup pnpm → Setup Node → Install → Lint → Build → Test �
 | Setup Node | `actions/setup-node@v7` | Node 22 + pnpm 缓存 |
 | Install | `pnpm install --frozen-lockfile` | 严格按 lockfile 安装 |
 | Lint | `pnpm lint` | ESLint 全仓检查 |
+| Typecheck | `pnpm typecheck` | 类型检查（tsc --noEmit） |
 | Build | `pnpm build` | turbo 按拓扑构建所有包 |
 | Test | `pnpm test` | Vitest 单元测试 |
 | Check packages | `pnpm check:pkg` | publint + attw 产物校验 |

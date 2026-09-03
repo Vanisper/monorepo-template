@@ -39,6 +39,7 @@ examples/
 pnpm install
 pnpm build       # 构建所有包
 pnpm test        # 单元测试（Vitest）
+pnpm typecheck   # 类型检查（tsc --noEmit）
 pnpm lint        # ESLint 检查（lint + 格式化）
 pnpm check:pkg   # 构建 + 产物校验（publint + attw）
 pnpm dev         # watch 模式

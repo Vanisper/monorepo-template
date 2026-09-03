@@ -4,7 +4,7 @@
   "language": "en",
   "ignorePaths": [
     "node_modules/**",
-    "dist/**",
+    "**/dist/**",
     "pnpm-lock.yaml",
     "docs/research/**"
   ],
@@ -30,6 +30,7 @@
     "bumpp",
     "uniapp",
     "vitejs",
-    "unplugin"
+    "unplugin",
+    "vite"
   ]
 }

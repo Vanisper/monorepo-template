@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // web 应用需要 DOM 类型；base 不携带 DOM，避免污染 Node/工具域包
+    // Vue SFC 的模板展开代码无法满足 isolatedDeclarations，此处关闭
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "isolatedDeclarations": false
+  },
+  "include": ["src"]
+}

@@ -15,7 +15,7 @@ shellEmulator: true
 
 packages:
   - 'packages/*' # 顶层包（如将来的 tools/* 等直接平层包）
-  - 'packages/*/*' # ui/hooks/tools 域下按平台分包的嵌套包
+  - 'packages/*/*' # ui/hooks/tools 域下的嵌套包（如 ui/vue、hooks/vue）
   - 'playgrounds/*'
   - 'examples/demo/*'
 

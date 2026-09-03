@@ -6,7 +6,8 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json"
   },
   "dependencies": {
     "@mono/hooks-vue": "workspace:*",
@@ -16,6 +17,7 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "catalog:build",
     "typescript": "catalog:build",
-    "vite": "catalog:build"
+    "vite": "catalog:build",
+    "vue-tsc": "catalog:build"
   }
 }

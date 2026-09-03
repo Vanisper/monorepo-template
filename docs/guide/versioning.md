@@ -38,6 +38,38 @@ pnpm version
 - 生成 / 追加 `CHANGELOG.md`
 - 完成后 **手动 `git add .` 并 commit**
 
+### 版本计算规则（多次累积时如何 bump）
+
+**一个包无论累积了多少个 changeset，每次发版只做一次 bump，取所有声明中最高的级别**（`major > minor > patch`），不是累加次数：
+
+| 累积的 changeset | 发版结果 |
+|---|---|
+| patch + patch + patch | 一次 patch bump（0.1.0 → 0.1.1） |
+| patch + minor | 一次 minor bump（0.1.0 → 0.2.0） |
+| minor + minor | 一次 minor bump（0.1.0 → 0.2.0） |
+| patch + minor + major | 一次 major bump（0.1.0 → 1.0.0） |
+
+语义：一次发布就是一个新版本，多个变更合并进这个版本；3 个 minor changeset 也只升一次 minor。
+
+版本号只升一次，但**所有累积的 changeset 消息都会进 CHANGELOG**，按 bump 类型分组（Major/Minor/Patch Changes），每条带 commit 链接：
+
+```markdown
+# @mono/hooks-vue
+
+## 0.1.0
+
+### Minor Changes
+
+- abc1234: 新增 createTitleManager 标题管理器
+- def5678: 支持 MaybeRefOrGetter 响应式标题
+
+### Patch Changes
+
+- ghi9012: 修复空标题兜底逻辑
+```
+
+随时可用 `pnpm changeset status` 预览当前累积的 bump（已按最高级别聚合）。
+
 ## 3. 打 git tag
 
 ```bash
@@ -93,3 +125,17 @@ pnpm changeset pre exit
 ## 跳过版本（不发版场景）
 
 如果一组变更只影响内部脚本/配置，无实际代码变更，在 changeset 文件中省略包名即可（changeset 会提示你选哪些包）。
+
+## 发版自动化（release.yml）
+
+`.github/workflows/release.yml` 在每次 push 到 main 时运行 `changesets/action`，自动完成阶段 2-3：
+
+- main 上有未消费的 changeset → 自动创建/更新 **`chore: version packages` PR**（跑 `changeset version`，消费 changeset、bump 版本号、生成 CHANGELOG）
+- 该 PR 被合并后 → 执行 `publish-script`（`pnpm build && pnpm changeset tag`，**只打 tag、不发 npm**），并推送 tag、按各包 CHANGELOG 内容**自动创建 GitHub Release**
+
+效果：你只需要在 feature PR 里写好 changeset 并合并，之后的发版动作（version PR → 合并 → tag → Release）全部自动。
+
+注意两点：
+
+- **version PR 不触发 CI**：它由 `GITHUB_TOKEN` 创建，GitHub 不会为 token 创建的 PR 运行其他 workflow——这是 GitHub 的限制。如果 main 的分支保护要求状态检查通过才能合并，version PR 会卡在这一步，需要配 PAT（Personal Access Token）替换 `github-token`，或接受手动放行
+- 自动创建的 Release 内容是各包 CHANGELOG 的条目——这正是「一个包一个 changeset 文件、写库级别描述」的价值所在

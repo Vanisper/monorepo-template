@@ -10,7 +10,8 @@ trustPolicy: no-downgrade
 shellEmulator: true
 
 packages:
-  - 'packages/*'
+  - 'packages/*' # 顶层包（如将来的 tools/* 等直接平层包）
+  - 'packages/*/*' # ui/hooks/tools 域下按平台分包的嵌套包
   - 'examples/demo/*'
 
 # pnpm 默认拦截依赖的安装脚本，此处放行：lefthook 需要 postinstall 下载/链接二进制

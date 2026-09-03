@@ -28,11 +28,14 @@ monorepo-template/
 ├── turbo.json                # 任务编排（build 按 ^build 拓扑排序）
 ├── tsconfig.base.json        # 所有子包共享的 TS 基线配置
 ├── .changeset/               # 版本管理配置
-├── packages/                 # 真实包（内部库放这里）
+├── packages/                 # 真实包（业务实现地，按域分）
+│   ├── ui/                # UI 域（业务组件/大组件，按平台分层）
+│   ├── hooks/             # hooks 域（逻辑复用，按平台分层）
+│   └── tools/             # 工具域（平台无关基础库）
 └── examples/
-    └── demo/
-        ├── core/           # @mono/core —— 示例核心包
-        └── utils/          # @mono/utils —— 示例，依赖 @mono/core
+    └── demo/              # 示例包
+        ├── core/          # @mono/core —— 示例核心包
+        └── utils/         # @mono/utils —— 示例，依赖 @mono/core
 ```
 
 ## 常用命令

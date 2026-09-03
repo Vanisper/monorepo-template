@@ -19,11 +19,18 @@
 ## 目录结构
 
 ```
-packages/          # 真实包（内部库放这里）
+packages/
+├── ui/              # UI 域：业务组件与业务大组件的实现地
+│   ├── core/          # UI 域核心（跨平台基础抽象、token 等）
+│   └── web/           # web 场景组件
+├── hooks/           # hooks 域（逻辑复用，与 ui 域平级，按平台分层）
+│   ├── core/          # hooks 域核心
+│   └── web/           # web 场景 hooks
+└── tools/           # 工具域（平台无关基础库）
 examples/
-└── demo/
-    ├── core/    # @mono/core — 示例核心包
-    └── utils/   # @mono/utils — 演示对 core 的 workspace 依赖
+└── demo/            # 示例包
+    ├── core/          # @mono/core — 示例核心包
+    └── utils/         # @mono/utils — 演示对 core 的 workspace 依赖
 ```
 
 ## 快速开始

@@ -136,7 +136,21 @@ pnpm changeset pre exit
 - `changeset publish`：只给 bump 的包打 tag（语义精确），但附带 npm 发布——本模板不发 npm，用不了
 - `changeset git-tag`：给所有非 ignore 包打 tag——首次发布时会把全仓包都 tag 一遍
 
-**本模板的处理惯例**：ignore 过滤掉不该进版本流的包（示例包、未就绪包）；偶有无用 tag 手动删除（`git push origin --delete <tag>`）。如果以后确实在意「只打 bump」，可以用 `changeset publish-plan` 输出本次 bump 的包列表，写自定义 release 脚本只给这些包打 tag（有路可走，暂不实现）。
+**本模板的处理惯例**：ignore 过滤掉不该进版本流的包（示例包、未就绪包）；偶有无用 tag 手动删除（`git push origin --delete <tag>`）。
+
+**精确打 tag（已实现，`scripts/tag-bumped.mjs`）**：发布时序为——
+
+```
+1. changeset 累积（.changeset/*.md 挂在 main 上）
+2. version PR（changeset version）消费 changeset
+   → package.json 版本 bump（bump 在先）
+   → CHANGELOG.md 生成/追加当前版本条目
+3. publish 阶段（release 脚本）：两个前提同时满足才打 tag
+   → CHANGELOG.md 里查得到当前版本号（证明真 bump 过）
+   → git tag ${name}@${version} 还不存在（证明还没发过）
+```
+
+即：「CHANGELOG 有记录」= 真 bump；「tag 不存在」= 还没发过。没有 CHANGELOG 的包（0.0.0 占位、从未 bump）永远不会被 tag。该脚本由根脚本 `release`（`pnpm build && node scripts/tag-bumped.mjs`）调用，同时兼容本地运行与 changesets/action 的 publish-script（自动写 `CHANGELOGSETS_OUTPUT` 供其创建 Release）。
 
 ## 跳过版本（不发版场景）
 

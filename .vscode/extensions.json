@@ -4,5 +4,6 @@
     "redhat.vscode-yaml",
     "streetsidesoftware.code-spell-checker",
     "editorconfig.editorconfig"
+    // "TypeScriptTeam.native-preview"
   ]
 }

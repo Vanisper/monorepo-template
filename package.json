@@ -30,6 +30,7 @@
     "cspell": "catalog:lint",
     "eslint": "catalog:lint",
     "lefthook": "catalog:hooks",
-    "turbo": "catalog:workspace"
+    "turbo": "catalog:workspace",
+    "typescript": "catalog:build"
   }
 }

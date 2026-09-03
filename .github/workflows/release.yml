@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # 拉全量历史（含 tags）：tag-bumped.mjs 需要判断 tag 是否已存在，默认 fetch-depth: 1 不含 tags 会导致重复打 tag
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6

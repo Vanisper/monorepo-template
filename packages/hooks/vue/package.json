@@ -1,7 +1,7 @@
 {
   "name": "@mono/hooks-vue",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "hooks 域 vue 场景逻辑复用包",
   "sideEffects": false,
   "exports": {

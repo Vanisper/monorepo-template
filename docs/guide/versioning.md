@@ -135,7 +135,8 @@ pnpm changeset pre exit
 
 效果：你只需要在 feature PR 里写好 changeset 并合并，之后的发版动作（version PR → 合并 → tag → Release）全部自动。
 
-注意两点：
+### 落地前提与注意事项（首次配置必看）
 
-- **version PR 不触发 CI**：它由 `GITHUB_TOKEN` 创建，GitHub 不会为 token 创建的 PR 运行其他 workflow——这是 GitHub 的限制。如果 main 的分支保护要求状态检查通过才能合并，version PR 会卡在这一步，需要配 PAT（Personal Access Token）替换 `github-token`，或接受手动放行
+- **仓库 Workflow permissions 必须允许写与创建 PR**：`Settings → Actions → General → Workflow permissions` 设为 `Read and write permissions`，并勾选 `Allow GitHub Actions to create and approve pull requests`。否则 `changesets/action` 创建 version PR 时会报 `HttpError: GitHub Actions is not permitted to create or approve pull requests`（可用 `gh api repos/<owner>/<repo>/actions/permissions/workflow` 查看与修改）
+- **version PR 不触发 CI**：它由 `GITHUB_TOKEN` 创建，GitHub 不会为 token 创建的 PR 运行其他 workflow——这是 GitHub 的限制。表现为 PR 页面显示 `workflow awaiting approval`，需要点 `Approve workflows to run`（或 `gh api -X POST repos/<owner>/<repo>/actions/runs/<run_id>/approve`）。如果 main 的分支保护要求状态检查通过才能合并，需要配 PAT（Personal Access Token）替换 `github-token`，或接受手动放行
 - 自动创建的 Release 内容是各包 CHANGELOG 的条目——这正是「一个包一个 changeset 文件、写库级别描述」的价值所在

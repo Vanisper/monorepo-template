@@ -62,12 +62,36 @@ mkdir -p packages/example/src
 
 ## 3. 创建 tsconfig.json
 
-`extends` 路径随包的嵌套深度而定，`packages/example/` 这类平层包用 `../../`：
+包内分**核心源码**和**周边构建配置**两套 tsconfig：
+
+**`tsconfig.json`**（核心源码 src，继承 base 的库纪律）：
 
 ```json
 {
   "extends": "../../tsconfig.base.json",
   "include": ["src"]
+}
+```
+
+**`tsconfig.node.json`**（构建配置，如 tsdown.config.ts）：
+
+```json
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "isolatedDeclarations": false
+  },
+  "include": ["tsdown.config.ts"]
+}
+```
+
+`extends` 路径随包的嵌套深度而定：`packages/example/` 这类平层包用 `../../`，`packages/ui/vue/` 这类三层嵌套用 `../../../`。
+
+`typecheck` 脚本同时跑两套配置：
+
+```jsonc
+{
+  "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json"
 }
 ```
 
@@ -79,7 +103,7 @@ import { defineConfig } from 'tsdown'
 export default defineConfig({
   entry: ['src/index.ts'],
   format: ['esm', 'cjs'],
-  dts: { isolatedDeclarations: true },
+  dts: { oxc: true },
   sourcemap: true,
 })
 ```
@@ -99,7 +123,7 @@ pnpm --filter @mono/example build
 
 ## 关键点说明
 
-- **isolatedDeclarations**：`tsconfig.base.json` 已开启，所有导出必须有显式类型注解，否则 d.ts 生成会报错
+- **isolatedDeclarations**：`tsconfig.base.json` 已开启——这是 TS 5.5 引入的编译器约束，要求**所有导出的声明都有显式类型注解**，从而让 d.ts 逐文件独立产出、不需要类型推断；tsdown 的 oxc 依赖它才能用 Rust 速度生成 d.ts（比 tsc 快一个数量级）。它只约束库源码（src），构建配置文件（tsdown.config.ts 等）由 `tsconfig.node.json` 单独管理并关闭该约束，不要把构建配置塞进 src 的 tsconfig 里
 - **TS 路径别名**：`tsconfig.base.json` 中 `moduleResolution: "bundler"` + `verbatimModuleSyntax` 是 tsdown 打包的标准基线，不要改
 - **私有包**：如果不想被 changesets 误识别为发布候选，加 `"private": true`；要发布的包去掉 `private` 字段
 - 新增包后重新 `pnpm install`，turbo 会自动识别为 workspace 包，`build` / `check:pkg` 自动纳入

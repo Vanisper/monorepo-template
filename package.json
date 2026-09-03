@@ -15,7 +15,7 @@
     "typecheck": "turbo run typecheck",
     "version": "changeset version",
     "tag": "changeset tag",
-    "release": "pnpm build && pnpm changeset tag",
+    "release": "pnpm build && node scripts/tag-bumped.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "spell": "cspell .",

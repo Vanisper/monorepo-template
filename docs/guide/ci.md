@@ -10,7 +10,7 @@
 ## 流水线结构
 
 ```
-checkout → Setup pnpm → Setup Node → Install → Lint → Build → Test → Check packages
+checkout → Setup pnpm → Setup Node → Install → Lint → Typecheck → Build → Test → Check packages
 ```
 
 | 步骤 | 命令 | 说明 |
@@ -20,6 +20,7 @@ checkout → Setup pnpm → Setup Node → Install → Lint → Build → Test �
 | Setup Node | `actions/setup-node@v7` | Node 22 + pnpm 缓存 |
 | Install | `pnpm install --frozen-lockfile` | 严格按 lockfile 安装 |
 | Lint | `pnpm lint` | ESLint 全仓检查 |
+| Typecheck | `pnpm typecheck` | 类型检查（tsc --noEmit） |
 | Build | `pnpm build` | turbo 按拓扑构建所有包 |
 | Test | `pnpm test` | Vitest 单元测试 |
 | Check packages | `pnpm check:pkg` | publint + attw 产物校验 |
@@ -27,7 +28,7 @@ checkout → Setup pnpm → Setup Node → Install → Lint → Build → Test �
 ## 设计要点
 
 - **pnpm 版本单一事实来源**：`packageManager: pnpm@11.24.0` 同时驱动本地 corepack 和 CI，不需要在 workflow 里重复写版本号（见 `ci.yml` 中 Setup pnpm 的注释）
-- **lint 不进 turbo 任务图**：lint 是「全仓一次跑完」的全局任务，CI 中作为独立步骤执行；turbo 只编排 build / test / check:pkg
+- **lint 不进 turbo 任务图**：lint 是「全仓一次跑完」的全局任务，CI 中作为独立步骤执行；turbo 编排 build / typecheck / test / check:pkg
 - **顺序**：lint 放最前面——失败成本低，能快速失败
 
 ## 扩展建议

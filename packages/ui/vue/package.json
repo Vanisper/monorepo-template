@@ -1,8 +1,8 @@
 {
-  "name": "@mono/ui-web",
+  "name": "@mono/ui-vue",
   "type": "module",
   "version": "0.0.0",
-  "description": "UI 域 web 场景组件包",
+  "description": "UI 域 vue 场景组件包",
   "sideEffects": false,
   "exports": {
     ".": {
@@ -29,7 +29,8 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "check:pkg": "publint && attw --pack .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "catalog:check",

@@ -40,7 +40,8 @@ mkdir -p packages/example/src
     "build": "tsdown",
     "dev": "tsdown --watch",
     "check:pkg": "publint && attw --pack .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "catalog:check",
@@ -57,6 +58,7 @@ mkdir -p packages/example/src
 - `exports` 必须与实际产物对应（tsdown 默认输出 `.mjs`/`.d.mts` / `.cjs`/`.d.cts`）
 - `"files": ["dist"]` 保证只发布产物目录
 - `"sideEffects": false` 帮助 tree-shaking
+- 不需要 `publishConfig.access`：scoped 包（`@mono/*`）发布时默认就是 restricted；且本模板为内部自治，发布流程走到 git tag 即止（见 `docs/guide/versioning.md`）
 
 ## 3. 创建 tsconfig.json
 
@@ -105,7 +107,7 @@ pnpm --filter @mono/example build
 ## 验证
 
 ```bash
-pnpm --filter @mono/example build && pnpm --filter @mono/example test && pnpm --filter @mono/example check:pkg
+pnpm --filter @mono/example build && pnpm --filter @mono/example typecheck && pnpm --filter @mono/example test && pnpm --filter @mono/example check:pkg
 ```
 
-三项全绿就说明没问题。
+四项全绿就说明没问题。

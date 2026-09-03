@@ -14,6 +14,7 @@ pnpm install   # 安装依赖（workspace 内所有包一起装）
 pnpm build     # turbo 按依赖拓扑并行构建所有包
 pnpm dev       # turbo watch，改源码自动重建
 pnpm test      # Vitest 单元测试（依赖包会先自动构建）
+pnpm typecheck # 类型检查（tsc --noEmit，tsc 检查源码类型）
 pnpm lint      # ESLint 全仓检查（含 @stylistic 格式化）
 pnpm lint:fix  # ESLint 全仓检查并自动修复
 pnpm check:pkg # 构建 + publint + attw 产物校验
@@ -29,8 +30,8 @@ monorepo-template/
 ├── tsconfig.base.json        # 所有子包共享的 TS 基线配置
 ├── .changeset/               # 版本管理配置
 ├── packages/                 # 真实包（业务实现地，按域分）
-│   ├── ui/                # UI 域（业务组件/大组件，按平台分层）
-│   ├── hooks/             # hooks 域（逻辑复用，按平台分层）
+│   ├── ui/                # UI 域（业务组件/大组件）
+│   ├── hooks/             # hooks 域（逻辑复用）
 │   └── tools/             # 工具域（平台无关基础库）
 └── examples/
     └── demo/              # 示例包
@@ -57,7 +58,7 @@ pnpm check:pkg   # publint + attw 应全部全绿
 
 ## 核心概念速览
 
-- **catalog**：`pnpm-workspace.yaml` 中统一管理共享依赖版本，子包用 `"catalog:<组名>"` 引用，避免版本漂移；按职责分组（build / test / lint / hooks / commit / check / workspace）
+- **catalog**：`pnpm-workspace.yaml` 中统一管理共享依赖版本，子包用 `"catalog:<组名>"` 引用，避免版本漂移；按职责分组（build / test / lint / hooks / commit / check / web / workspace）
 - **workspace:***：内部包互相依赖的写法，发布时自动替换为真实版本号
 - **catalog: 协议验证**：`pnpm pack` 时会自动替换成真实版本号，无需担心发布产物
 

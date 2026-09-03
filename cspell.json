@@ -27,6 +27,7 @@
     "tsconfig",
     "mkdist",
     "unjs",
-    "bumpp"
+    "bumpp",
+    "uniapp"
   ]
 }

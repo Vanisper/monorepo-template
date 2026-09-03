@@ -25,14 +25,12 @@
   "engines": {
     "node": ">=22.18.0"
   },
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
     "check:pkg": "publint && attw --pack .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "catalog:check",

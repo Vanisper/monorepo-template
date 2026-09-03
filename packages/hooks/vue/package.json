@@ -1,8 +1,8 @@
 {
-  "name": "@mono/utils",
+  "name": "@mono/hooks-vue",
   "type": "module",
   "version": "0.0.0",
-  "description": "示例包（示例，演示对 @mono/core 的 workspace 依赖）",
+  "description": "hooks 域 vue 场景逻辑复用包",
   "sideEffects": false,
   "exports": {
     ".": {
@@ -32,14 +32,15 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "@mono/core": "workspace:*"
+  "peerDependencies": {
+    "vue": "^3.5.0"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "catalog:check",
     "publint": "catalog:check",
     "tsdown": "catalog:build",
     "typescript": "catalog:build",
-    "vitest": "catalog:test"
+    "vitest": "catalog:test",
+    "vue": "catalog:web"
   }
 }

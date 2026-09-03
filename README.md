@@ -21,11 +21,11 @@
 ```
 packages/
 ├── ui/              # UI 域：业务组件与业务大组件的实现地
-│   ├── core/          # UI 域核心（跨平台基础抽象、token 等）
-│   └── web/           # web 场景组件
-├── hooks/           # hooks 域（逻辑复用，与 ui 域平级，按平台分层）
+│   ├── core/          # UI 域核心（基础抽象、token 等）
+│   └── vue/           # vue 组件
+├── hooks/           # hooks 域（逻辑复用，与 ui 域平级）
 │   ├── core/          # hooks 域核心
-│   └── web/           # web 场景 hooks
+│   └── vue/           # vue hooks
 └── tools/           # 工具域（平台无关基础库）
 examples/
 └── demo/            # 示例包
@@ -39,6 +39,7 @@ examples/
 pnpm install
 pnpm build       # 构建所有包
 pnpm test        # 单元测试（Vitest）
+pnpm typecheck   # 类型检查（tsc --noEmit）
 pnpm lint        # ESLint 检查（lint + 格式化）
 pnpm check:pkg   # 构建 + 产物校验（publint + attw）
 pnpm dev         # watch 模式

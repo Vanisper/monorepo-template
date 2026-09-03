@@ -9,5 +9,6 @@ export default defineConfig({
   format: ['esm'],
   dts: { vue: true },
   css: { inject: true },
+  unbundle: true,
   sourcemap: true,
 })

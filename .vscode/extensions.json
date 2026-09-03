@@ -3,6 +3,7 @@
     "dbaeumer.vscode-eslint",
     "redhat.vscode-yaml",
     "streetsidesoftware.code-spell-checker",
-    "editorconfig.editorconfig"
+    "editorconfig.editorconfig",
+    "TypeScriptTeam.native-preview"
   ]
 }

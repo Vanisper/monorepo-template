@@ -22,7 +22,7 @@ allowBuilds:
 catalogs:
   build:
     tsdown: ^0.22.14
-    typescript: ^7.0.2
+    typescript: ~6.0.3
   check:
     '@arethetypeswrong/cli': ^0.18.5
     publint: ^0.3.24

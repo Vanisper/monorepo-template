@@ -6,7 +6,7 @@ import type {
 } from 'vue-router'
 import type { RouteHandler, RouteMetaKeys, RouterGuardSetup } from '../_route-meta'
 import type { IframeOpenOptions } from './index'
-import { matchRouteTarget } from '../_route-meta'
+import { isSameNavigation, matchRouteTarget, resolveRouteDecision } from '../_route-meta'
 
 /** createIframeGuard 的处理函数集合 */
 export interface IframeGuardHandlers {
@@ -27,7 +27,7 @@ export interface IframeGuardHandlers {
 export function createIframeGuard(handlers: IframeGuardHandlers, metaKeys: RouteMetaKeys): RouterGuardSetup {
   return (router) => {
     router.afterEach((to, from) => {
-      if (to.fullPath === from.fullPath) {
+      if (isSameNavigation(to, from)) {
         return
       }
 
@@ -45,10 +45,7 @@ export function createIframeGuard(handlers: IframeGuardHandlers, metaKeys: Route
       }
 
       if (readIframeMeta(from.meta) !== undefined) {
-        const defaultShouldClose = !shouldKeepIframe(to, from, metaKeys)
-        const shouldClose = handlers.shouldClose
-          ? handlers.shouldClose(to, from, metaKeys) ?? defaultShouldClose
-          : defaultShouldClose
+        const shouldClose = resolveRouteDecision(handlers.shouldClose?.(to, from, metaKeys), !shouldKeepIframe(to, from, metaKeys))
         if (shouldClose) {
           handlers.close(from.fullPath)
         }

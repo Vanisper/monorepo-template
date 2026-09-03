@@ -30,6 +30,24 @@ export type RouteHandler = (
 export type RouterGuardSetup = (router: Router) => void
 
 /**
+ * 判断是否同一次导航（fullPath 相同）
+ *
+ * 守卫对重复导航不做处理
+ */
+export function isSameNavigation(to: RouteLocationNormalized, from: RouteLocationNormalizedLoaded): boolean {
+  return to.fullPath === from.fullPath
+}
+
+/**
+ * 合成守卫决策
+ *
+ * 自定义 handler 显式返回 `false` / `true` 时以其为准，返回 `undefined` 时回落默认规则
+ */
+export function resolveRouteDecision(custom: boolean | undefined, fallback: boolean): boolean {
+  return custom ?? fallback
+}
+
+/**
  * 判断路由名是否命中配置目标
  *
  * `config` 为 string 时全等比较、为数组时包含比较，其余类型一律不命中

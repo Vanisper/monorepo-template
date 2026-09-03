@@ -1,0 +1,21 @@
+{
+  "name": "vue-playground",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mono/hooks-vue": "workspace:*",
+    "@mono/ui-vue": "workspace:*",
+    "vue": "catalog:web"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:build",
+    "typescript": "catalog:build",
+    "vite": "catalog:build"
+  }
+}

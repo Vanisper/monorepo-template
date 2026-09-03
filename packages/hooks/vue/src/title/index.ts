@@ -54,7 +54,8 @@ export interface TitleManager {
    * 传空串显式清空
    */
   setOverrideTitle: (title: Title) => void
-  /** 设置应用主标题
+  /**
+   * 设置应用主标题
    *
    * 注意：传静态值会切断此前的 ref/getter 响应式绑定（getter 被替换为静态值）
    */

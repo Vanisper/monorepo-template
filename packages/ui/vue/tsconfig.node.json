@@ -4,6 +4,7 @@
     "isolatedDeclarations": false
   },
   "include": [
-    "tsdown.config.ts"
+    "tsdown.config.ts",
+    "vitest.config.ts"
   ]
 }

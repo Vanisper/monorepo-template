@@ -150,7 +150,7 @@ pnpm changeset pre exit
    → git tag ${name}@${version} 还不存在（证明还没发过）
 ```
 
-即：「CHANGELOG 有记录」= 真 bump；「tag 不存在」= 还没发过。没有 CHANGELOG 的包（0.0.0 占位、从未 bump）永远不会被 tag。该脚本由根脚本 `release`（`pnpm build && node scripts/tag-bumped.mjs`）调用，同时兼容本地运行与 changesets/action 的 publish-script（自动写 `CHANGELOGSETS_OUTPUT` 供其创建 Release）。
+即：「CHANGELOG 有记录」= 真 bump；「tag 不存在」= 还没发过。没有 CHANGELOG 的包（0.0.0 占位、从未 bump）永远不会被 tag。该脚本由根脚本 `release`（`pnpm build && node scripts/tag-bumped.mjs`）调用，同时兼容本地运行与 changesets/action 的 publish-script（自动写 `CHANGESETS_OUTPUT` 供其创建 Release）。
 
 ## 跳过版本（不发版场景）
 

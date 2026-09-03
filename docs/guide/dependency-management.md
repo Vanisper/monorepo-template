@@ -9,7 +9,7 @@
 catalogs:
   build:
     typescript: ^7.0.2
-    tsdown: ^0.22.14
+    tsdown: ^0.23.0
   test:
     vitest: ^4.1.11
   lint:
@@ -23,6 +23,8 @@ catalogs:
   check:
     '@arethetypeswrong/cli': ^0.18.5
     publint: ^0.3.24
+  web:
+    vue: ^3.5.24
   workspace:
     '@changesets/cli': ^3.0.1
     turbo: ^2.10.12

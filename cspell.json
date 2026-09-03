@@ -28,6 +28,8 @@
     "mkdist",
     "unjs",
     "bumpp",
-    "uniapp"
+    "uniapp",
+    "vitejs",
+    "unplugin"
   ]
 }

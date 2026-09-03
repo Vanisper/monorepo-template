@@ -87,6 +87,8 @@ mkdir -p packages/example/src
 
 `extends` 路径随包的嵌套深度而定：`packages/example/` 这类平层包用 `../../`，`packages/ui/vue/` 这类三层嵌套用 `../../../`。
 
+有其他根级配置文件（如 `vitest.config.ts`）时一并加入 `tsconfig.node.json` 的 `include`，否则会逃逸 typecheck。
+
 `typecheck` 脚本同时跑两套配置：
 
 ```jsonc
@@ -108,7 +110,7 @@ export default defineConfig({
 })
 ```
 
-`dts: true` 即可——tsdown 会从 tsconfig 的 `isolatedDeclarations` 自动检测并启用 oxc 生成 d.ts。**不要写 `dts: { oxc: true }` 或 `dts: { isolatedDeclarations: true }`**：这两个键分别在 rolldown-plugin-dts 0.27+ 与 tsdown 0.23+ 中已被移除（本项目踩过的坑）。
+`dts: true` 即可——tsdown 会从 tsconfig 的 `isolatedDeclarations` 自动检测并启用 oxc 生成 d.ts。**不要写 `dts: { oxc: true }` 或 `dts: { isolatedDeclarations: true }`**：这两个键已废弃（变迁细节见 [ADR 0005](../adr/0005-vue-sfc-build-chain.md)「旧的认知修正」）。
 
 ## 5. 写代码并构建
 

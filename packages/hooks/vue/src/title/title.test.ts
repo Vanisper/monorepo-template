@@ -51,12 +51,31 @@ describe('createTitleManager', () => {
     expect(manager.finalTitle.value).toBe('无标题')
   })
 
-  it('title 支持 ref/getter 形式，依赖变化时响应式更新', () => {
-    const name = ref('示例应用')
-    const manager = createTitleManager({ appTitle: () => name.value, fallbackTitle: '无标题' })
+  it('title 支持 ref/getter 形式（如未读数标题），依赖变化时响应式更新', () => {
+    const unread = ref(3)
+    const manager = createTitleManager({
+      appTitle: () => unread.value > 0 ? `${unread.value} 条新消息 · 示例应用` : '示例应用',
+    })
+    expect(manager.finalTitle.value).toBe('3 条新消息 · 示例应用')
+
+    unread.value = 5
+    expect(manager.finalTitle.value).toBe('5 条新消息 · 示例应用')
+    expect(fakeDocument.title).toBe('5 条新消息 · 示例应用')
+
+    unread.value = 0
     expect(manager.finalTitle.value).toBe('示例应用')
-    name.value = '新应用'
-    expect(manager.finalTitle.value).toBe('新应用')
-    expect(fakeDocument.title).toBe('新应用')
+  })
+
+  it('setter 会切断响应式绑定：setAppTitle 后 ref/getter 不再生效', () => {
+    const unread = ref(3)
+    const manager = createTitleManager({
+      appTitle: () => `${unread.value} 条新消息 · 示例应用`,
+    })
+    expect(manager.finalTitle.value).toBe('3 条新消息 · 示例应用')
+
+    // setter 用静态值替换 getter，响应式绑定被切断
+    manager.setAppTitle('管理系统')
+    unread.value = 5
+    expect(manager.finalTitle.value).toBe('管理系统')
   })
 })

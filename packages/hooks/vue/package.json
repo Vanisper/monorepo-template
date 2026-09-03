@@ -14,6 +14,26 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./iframe/vue-router": {
+      "import": {
+        "types": "./dist/iframe/vue-router.d.mts",
+        "default": "./dist/iframe/vue-router.mjs"
+      },
+      "require": {
+        "types": "./dist/iframe/vue-router.d.cts",
+        "default": "./dist/iframe/vue-router.cjs"
+      }
+    },
+    "./keep-alive/vue-router": {
+      "import": {
+        "types": "./dist/keep-alive/vue-router.d.mts",
+        "default": "./dist/keep-alive/vue-router.mjs"
+      },
+      "require": {
+        "types": "./dist/keep-alive/vue-router.d.cts",
+        "default": "./dist/keep-alive/vue-router.cjs"
+      }
     }
   },
   "main": "./dist/index.cjs",
@@ -28,7 +48,7 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "check:pkg": "publint && attw --pack .",
+    "check:pkg": "publint && attw --pack . --exclude-entrypoints './iframe/vue-router' './keep-alive/vue-router' && attw --pack . --entrypoints './iframe/vue-router' './keep-alive/vue-router' --profile esm-only",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json"
   },

@@ -23,6 +23,17 @@ hooks 域承载跨场景的逻辑复用（与 ui 域分工：hooks 无渲染，u
 - **直接返回管理器**：`createTitleManager` / `createFlag` / `createUniqueList` / `createKeepAlive` / `createIframeManager`。无生命周期副作用，可在模块级创建、任意位置使用。
 - **返回须在 setup 内调用的函数**：`createMobileAdaptation` 返回 `useMobileAdaptation()`。resize 监听的注册与清理依赖组件生命周期，必须挂到组件实例上。
 
+## 守卫的导入与产物
+
+守卫**不进根入口**：根 barrel 若重导出守卫，其 d.ts 会带上 vue-router 类型引用，未安装 vue-router 的消费方在类型解析阶段即报错——与 optional peerDependency 的意图冲突。守卫走子路径导入：
+
+```ts
+import { createIframeGuard } from '@mono/hooks-vue/iframe/vue-router'
+import { createKeepAliveGuard } from '@mono/hooks-vue/keep-alive/vue-router'
+```
+
+产物校验（check:pkg）因此分两遍 attw：根入口按默认档位全量严格校验（含 node10 / node16 CJS）；子路径入口用 `--profile esm-only`——node10 解析不读 exports 字段、无法支持任何子路径导出，属预期失败而非缺陷。
+
 ## 路由守卫的 Meta 约定
 
 两个守卫（keep-alive / iframe）通过 `RouteMetaKeys`（`keepKey` / `noKeepKey`）读取路由 Meta，键名可配置以避开业务既有字段。**匹配目标是路由 `name`，不是组件 name**——KeepAlive `include` 用组件 name，但 Meta 白名单/黑名单匹配路由 name，两者别混淆。

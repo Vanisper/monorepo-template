@@ -19,9 +19,11 @@
 ## 目录结构
 
 ```
-packages/
-├── core/    # @mono/core — 示例核心包
-└── utils/   # @mono/utils — 演示对 core 的 workspace 依赖
+packages/          # 真实包（内部库放这里）
+examples/
+└── demo/
+    ├── core/    # @mono/core — 示例核心包
+    └── utils/   # @mono/utils — 演示对 core 的 workspace 依赖
 ```
 
 ## 快速开始

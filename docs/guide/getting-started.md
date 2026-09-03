@@ -28,9 +28,11 @@ monorepo-template/
 ├── turbo.json                # 任务编排（build 按 ^build 拓扑排序）
 ├── tsconfig.base.json        # 所有子包共享的 TS 基线配置
 ├── .changeset/               # 版本管理配置
-└── packages/
-    ├── core/               # @mono/core —— 示例核心包
-    └── utils/              # @mono/utils —— 示例，依赖 @mono/core
+├── packages/                 # 真实包（内部库放这里）
+└── examples/
+    └── demo/
+        ├── core/           # @mono/core —— 示例核心包
+        └── utils/          # @mono/utils —— 示例，依赖 @mono/core
 ```
 
 ## 常用命令
@@ -147,12 +149,12 @@ export default antfu({
 
 ```bash
 # 1. lint 生效验证：故意写坏一个 .ts 文件
-printf 'const a = 1\nexport const b: number = "x"\n' > packages/core/src/bad.ts   # eslint 应报 2 个 error（unused + 双引号）
+printf 'const a = 1\nexport const b: number = "x"\n' > examples/demo/core/src/bad.ts   # eslint 应报 2 个 error（unused + 双引号）
 pnpm lint   # 应报错
-rm packages/core/src/bad.ts   # 清理
+rm examples/demo/core/src/bad.ts   # 清理
 
 # pre-commit 验证：故意加未使用变量，commit 应被拦截
-echo 'const unused = 1' > packages/core/src/index.ts
-git add packages/core/src/index.ts && git commit -m "test"  # pre-commit 应报 unused-imports/no-unused-vars
-git reset && git checkout -- packages/core/src/index.ts   # 还原
+echo 'const unused = 1' > examples/demo/core/src/index.ts
+git add examples/demo/core/src/index.ts && git commit -m "test"  # pre-commit 应报 unused-imports/no-unused-vars
+git reset && git checkout -- examples/demo/core/src/index.ts   # 还原
 ```

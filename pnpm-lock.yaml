@@ -81,7 +81,7 @@ importers:
         specifier: catalog:workspace
         version: 2.10.12
 
-  packages/core:
+  examples/demo/core:
     devDependencies:
       '@arethetypeswrong/cli':
         specifier: catalog:check
@@ -99,7 +99,7 @@ importers:
         specifier: catalog:test
         version: 4.1.11(@types/node@26.4.1)(vite@8.2.2(@types/node@26.4.1)(jiti@2.6.1)(yaml@2.9.0))
 
-  packages/utils:
+  examples/demo/utils:
     dependencies:
       '@mono/core':
         specifier: workspace:*

@@ -93,3 +93,19 @@ pnpm changeset pre exit
 ## 跳过版本（不发版场景）
 
 如果一组变更只影响内部脚本/配置，无实际代码变更，在 changeset 文件中省略包名即可（changeset 会提示你选哪些包）。
+
+## 发版自动化（release.yml）
+
+`.github/workflows/release.yml` 在每次 push 到 main 时运行 `changesets/action`，自动完成阶段 2-3：
+
+- main 上有未消费的 changeset → 自动创建/更新 **`chore: version packages` PR**（跑 `changeset version`，消费 changeset、bump 版本号、生成 CHANGELOG）
+- 该 PR 被合并后 → 执行 `publish-script`（`pnpm build && pnpm changeset tag`，**只打 tag、不发 npm**），并推送 tag、按各包 CHANGELOG 内容**自动创建 GitHub Release**
+
+效果：你只需要在 feature PR 里写好 changeset 并合并，之后的发版动作（version PR → 合并 → tag → Release）全部自动。
+
+注意两点：
+
+- **version PR 不触发 CI**：它由 `GITHUB_TOKEN` 创建，GitHub 不会为 token 创建的 PR 运行其他 workflow——这是 GitHub 的限制。如果 main 的分支保护要求状态检查通过才能合并，version PR 会卡在这一步，需要配 PAT（Personal Access Token）替换 `github-token`，或接受手动放行
+- 自动创建的 Release 内容是各包 CHANGELOG 的条目——这正是「一个包一个 changeset 文件、写库级别描述」的价值所在
+
+## 常用操作

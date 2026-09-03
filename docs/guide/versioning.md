@@ -126,8 +126,8 @@ pnpm changeset pre exit
 
 `.changeset/config.json` 的 `ignore` 列表让包彻底退出 bump / tag / Release 流程，分两种用法：
 
-- **永久 ignore**（示例/教学包）：`@mono/core`、`@mono/utils` 这类占位示例包，本来就不该有版本与 tag
-- **暂时 ignore**（未就绪包）：包还没有真实内容时（如当前只有占位的 `@mono/ui-vue`），先加入 ignore 避免无意义的 0.0.0 tag；等有真实内容要发布时，从列表中移除该行即可
+- **永久 ignore**（示例/教学包）：`@mono/core`、`@mono/utils` 这类占位示例包，本来就不该有版本与 tag（当前配置即此）
+- **暂时 ignore**（未就绪包）：包还没有真实内容时可先加入 ignore 避免无意义的 0.0.0 tag；等有真实内容要发布时，从列表中移除该行即可（属备用手段，不是常态）
 
 ### tag 的语义与「只打 bump 的包」
 

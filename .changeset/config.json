@@ -9,7 +9,6 @@
   "updateInternalDependencies": "patch",
   "ignore": [
     "@mono/core",
-    "@mono/utils",
-    "@mono/ui-vue"
+    "@mono/utils"
   ]
 }

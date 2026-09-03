@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
-import { createTitleManager } from './index'
-
-// node 环境无 document，stub 一个假的
-const fakeDocument = { title: '' }
-vi.stubGlobal('document', fakeDocument)
+import { createTitleManager, useTitle } from './index'
 
 function createManager() {
   return createTitleManager({ appTitle: '示例应用', fallbackTitle: '无标题' })
@@ -16,7 +12,6 @@ describe('createTitleManager', () => {
     manager.setRouteTitle('用户管理')
     manager.setOverrideTitle('百度一下')
     expect(manager.finalTitle.value).toBe('百度一下 - 示例应用')
-    expect(fakeDocument.title).toBe('百度一下 - 示例应用')
   })
 
   it('路由切换时清空覆盖标题', () => {
@@ -60,7 +55,6 @@ describe('createTitleManager', () => {
 
     unread.value = 5
     expect(manager.finalTitle.value).toBe('5 条新消息 · 示例应用')
-    expect(fakeDocument.title).toBe('5 条新消息 · 示例应用')
 
     unread.value = 0
     expect(manager.finalTitle.value).toBe('示例应用')
@@ -81,5 +75,50 @@ describe('createTitleManager', () => {
     // 传 getter：重新建立响应式绑定
     manager.setAppTitle(() => `${unread.value} 条新消息 · 管理系统`)
     expect(manager.finalTitle.value).toBe('5 条新消息 · 管理系统')
+  })
+})
+
+describe('useTitle', () => {
+  it('将标题源同步到 document.title，依赖变化时立即更新', () => {
+    // node 环境无 document，stub 一个假的
+    const fakeDocument = { title: '' }
+    vi.stubGlobal('document', fakeDocument)
+    try {
+      const name = ref('示例应用')
+      useTitle(() => name.value)
+      expect(fakeDocument.title).toBe('示例应用')
+
+      name.value = '新应用'
+      expect(fakeDocument.title).toBe('新应用')
+    }
+    finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('配合 title 管理器：finalTitle 变化即同步', () => {
+    const fakeDocument = { title: '' }
+    vi.stubGlobal('document', fakeDocument)
+    try {
+      const manager = createManager()
+      useTitle(manager.finalTitle)
+      expect(fakeDocument.title).toBe('示例应用')
+
+      manager.setRouteTitle('用户管理')
+      expect(fakeDocument.title).toBe('用户管理 - 示例应用')
+    }
+    finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('无 document（SSR）时为空操作，不抛错', () => {
+    vi.stubGlobal('document', undefined)
+    try {
+      expect(() => useTitle('示例应用')).not.toThrow()
+    }
+    finally {
+      vi.unstubAllGlobals()
+    }
   })
 })

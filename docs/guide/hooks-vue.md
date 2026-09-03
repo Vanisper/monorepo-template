@@ -6,7 +6,7 @@ hooks 域承载跨场景的逻辑复用（与 ui 域分工：hooks 无渲染，u
 
 | 模块 | 职责 | 依赖 |
 | --- | --- | --- |
-| `title` | 页面标题管理（override > route > app 三级合成） | vue |
+| `title` | 页面标题管理（override > route > app 三级合成）+ `useTitle` 挂载 | vue |
 | `flag` | 布尔开关（翻转/重置/派生状态/变化回调） | vue |
 | `unique-list` | 唯一字符串列表（去重/批量增删/清空） | vue |
 | `keep-alive` | KeepAlive 缓存列表 + 路由守卫 | vue、vue-router* |
@@ -16,12 +16,13 @@ hooks 域承载跨场景的逻辑复用（与 ui 域分工：hooks 无渲染，u
 
 带 * 者对 vue-router 仅为 **type-only 依赖**：守卫的运行时代码不 import vue-router（`Router` 实例由调用方传入），因此 vue-router 声明为 **optional peerDependency**——不用守卫的项目无需安装。
 
-## 工厂的两种形态
+## 工厂与副作用挂载的形态
 
-包内工厂分两类，以是否有生命周期副作用为界：
+状态与副作用分离：状态工厂保持纯净（可在任意环境创建与测试），环境副作用归挂载层所有。具体分三类：
 
-- **直接返回管理器**：`createTitleManager` / `createFlag` / `createUniqueList` / `createKeepAlive` / `createIframeManager`。无生命周期副作用，可在模块级创建、任意位置使用。
+- **纯状态工厂，直接返回管理器**：`createTitleManager` / `createFlag` / `createUniqueList` / `createKeepAlive` / `createIframeManager`。无生命周期副作用，可在模块级创建、任意位置使用。
 - **返回须在 setup 内调用的函数**：`createMobileAdaptation` 返回 `useMobileAdaptation()`。resize 监听的注册与清理依赖组件生命周期，必须挂到组件实例上。
+- **挂载 hook**：`useTitle(source)`。将标题源同步到 `document.title` 的 DOM 副作用，与 `createTitleManager` 配套（`useTitle(title.finalTitle)`）也可独立使用；setup 内调用随组件卸载自动停止，模块级调用常驻应用生命周期，SSR 无 document 时为空操作。
 
 ## 守卫的导入与产物
 

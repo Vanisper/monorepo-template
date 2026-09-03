@@ -65,10 +65,10 @@ export interface TitleManager {
 }
 
 /**
- * 创建页面标题管理器
+ * 创建页面标题管理器（纯状态工厂，无环境副作用）
  *
  * - 模块级单例使用：在应用入口创建一次，router.afterEach 中调用 setRouteTitle
- * - 副作用：创建后立即通过 watchEffect 将 finalTitle 同步到 document.title
+ * - 同步到 `document.title` 由 useTitle 挂载：状态与副作用分离，管理器可在任意环境创建与测试
  */
 export function createTitleManager(options: TitleManagerOptions): TitleManager {
   // Title 统一归一成 getter 再存状态：合成层只面对一种形态，直接在响应式作用域内调用即可
@@ -94,10 +94,6 @@ export function createTitleManager(options: TitleManagerOptions): TitleManager {
     return current ? `${current} - ${app}` : app
   })
 
-  watchEffect(() => {
-    document.title = finalTitle.value
-  }, { flush: 'sync' })
-
   return {
     appTitle,
     routeTitle,
@@ -119,4 +115,20 @@ export function createTitleManager(options: TitleManagerOptions): TitleManager {
       dynamicTitleEnabled.value = enable
     },
   }
+}
+
+/**
+ * 将标题源同步到 `document.title` 的挂载 hook
+ *
+ * - 与 createTitleManager 配套：`useTitle(title.finalTitle)`，也可独立同步任意标题源
+ * - 可在组件 setup 内调用（effect 随组件卸载自动停止），也可在模块级调用（effect 常驻应用生命周期）
+ * - SSR 无 `document` 时为空操作
+ */
+export function useTitle(source: Title): void {
+  if (typeof document === 'undefined') {
+    return
+  }
+  watchEffect(() => {
+    document.title = toValue(source)
+  }, { flush: 'sync' })
 }

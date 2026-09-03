@@ -1,3 +1,5 @@
+export * from './smart-fixed-block'
+
 export interface ButtonProps {
   label: string
   disabled?: boolean

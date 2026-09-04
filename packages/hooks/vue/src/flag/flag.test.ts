@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { nextTick, ref, watch } from 'vue'
+import { watch } from 'vue'
 import { createFlag } from './flag'
 
 describe('createFlag', () => {
@@ -48,30 +48,6 @@ describe('createFlag', () => {
     manager.toggle(false)
     manager.reset()
     expect(afterChange).not.toHaveBeenCalled()
-  })
-
-  it('init 传 Ref 时源是单一事实来源：变更双向同步', async () => {
-    const source = ref(false)
-    const manager = createFlag(source)
-
-    // 本地变更回写源
-    manager.toggle()
-    expect(source.value).toBe(true)
-    expect(manager.flag.value).toBe(true)
-
-    // 源被外部改变时同步镜像
-    source.value = false
-    await nextTick()
-    expect(manager.flag.value).toBe(false)
-  })
-
-  it('init 传 Ref 时 reset 同样回写源', () => {
-    const source = ref(true)
-    const manager = createFlag(source)
-    manager.toggle(false)
-    manager.reset()
-    expect(source.value).toBe(true)
-    expect(manager.flag.value).toBe(true)
   })
 
   it('有实际变化才触发响应式更新', () => {

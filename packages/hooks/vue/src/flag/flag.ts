@@ -1,5 +1,5 @@
-import type { ComputedRef, Ref } from 'vue'
-import { computed, isRef, shallowRef, watch } from 'vue'
+import type { ComputedRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { createFlagCore } from './core'
 
 /**
@@ -15,7 +15,7 @@ export interface FlagOptions {
   /**
    * ## 变化回调
    *
-   * flag 实际变化后触发（reset 不触发；源 Ref 同步引起的变化同样触发）
+   * flag 实际变化后触发（reset 不触发）
    */
   afterChange?: (value: boolean) => void
 }
@@ -53,15 +53,12 @@ export interface FlagManager {
  *
  * @description
  * - 有实际变化才替换状态并触发 afterChange；重复置为同值零响应式开销
- * - `init` 传 Ref 时源是单一事实来源：toggle/reset 只写源，
- *   由 `flush: 'sync'` 的 watch 单路径同步镜像——不能本地再对齐一次，
- *   源被改回原值时 watcher 因净零变化跳过，双路径会脱节
- * - `init` 传静态值时所有权归管理器（构造参数拷贝语义）
+ * - 数据所有权在管理器内部：`init` 是种子（构造参数拷贝），
+ *   变更只走 toggle / reset 接口，不对入参引用做响应反馈——
+ *   需要跟随外部源时由调用方显式 `watch(source, v => flag.toggle(v))`
  */
-export function createFlag(init?: boolean | Ref<boolean>, options?: FlagOptions): FlagManager {
-  // 创建时快照：reset 的目标值（Ref 模式下回写源也用它）
-  const initial = isRef(init) ? init.value : Boolean(init)
-  const core = createFlagCore(initial)
+export function createFlag(init = false, options?: FlagOptions): FlagManager {
+  const core = createFlagCore(init)
   const trigger = shallowRef(0)
 
   const flag = computed<boolean>(() => {
@@ -77,35 +74,16 @@ export function createFlag(init?: boolean | Ref<boolean>, options?: FlagOptions)
   )
 
   function toggle(target?: boolean): void {
-    const next = typeof target === 'boolean' ? target : !core.get()
-
-    if (isRef(init)) {
-      init.value = next
-      return
-    }
-    if (core.toggle(next)) {
+    if (core.toggle(target)) {
       trigger.value++
-      options?.afterChange?.(next)
+      options?.afterChange?.(core.get())
     }
   }
 
   function reset(): void {
-    if (isRef(init)) {
-      init.value = initial
-      return
-    }
     if (core.reset()) {
       trigger.value++
     }
-  }
-
-  if (isRef(init)) {
-    watch(init, (value) => {
-      if (core.toggle(value)) {
-        trigger.value++
-        options?.afterChange?.(value)
-      }
-    }, { flush: 'sync' })
   }
 
   return {

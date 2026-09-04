@@ -6,7 +6,7 @@
 
 各模块拆为「core / 适配层」两层：core 为无框架依赖的纯逻辑（快照引用稳定、变更方法返回是否实际变化），vue 适配层以 `computed` 投影——未变更的重复调用不触发响应式更新。`title` 同步纳入分层：合成逻辑进 `createTitleCore`，Ref/getter 源由适配层归一为活 getter，响应式绑定经求值链天然保真（对外 API 不变）。
 
-`flag`：`createStatus` / `afterChange` 回调收纯值（`boolean`）；`init` 传 Ref 时源是单一事实来源，toggle/reset 回写源；重复置为同值不算变化、不触发 `afterChange`。
+`flag`：`createStatus` / `afterChange` 回调收纯值（`boolean`）；`init` 只收 boolean 种子（数据所有权在管理器内部，不对入参引用做响应反馈，受控场景由调用方显式 watch 表达）；重复置为同值不算变化、不触发 `afterChange`。
 
 `unique-list`：不再过滤空串、`null`、`undefined`——唯一性管理只管唯一性，值语义归调用方。
 

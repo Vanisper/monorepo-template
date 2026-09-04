@@ -61,10 +61,13 @@ dialog.toggle() // 翻转
 dialog.toggle(true) // 置为指定值
 dialog.reset() // 重置为创建时的初始状态
 dialog.status.value // 派生状态（createStatus 可自定义派生）
+```
 
-// init 传 Ref 时源是单一事实来源：toggle/reset 回写源，源变化同步镜像
-const source = ref(false)
-const mirror = createFlag(source)
+数据所有权在管理器内部：`init` 是种子，变更只走 toggle / reset 接口。需要跟随外部源时由调用方显式表达：
+
+```ts
+const dialog = createFlag(source.value)
+watch(source, value => dialog.toggle(value))
 ```
 
 ### unique-list
@@ -169,10 +172,10 @@ const { mode, enable } = useMobileAdaptation()
 - **Vue 适配层**：`shallowRef` 版本号 + `computed` 读 core 快照——未变更的重复调用零响应式开销。
 - **响应式源的归一**：Ref 在适配层归一为 `() => ref.value` 活引用存入 core，computed 求值链穿过它读到 ref——源的响应式绑定天然保真，无需通知机制。
 
-数据所有权（各模块在注释中显式声明）：
+数据所有权（各模块在注释中显式声明，判断单位是每个数据项）：
 
-1. **构造参数拷贝**：`initialList` 等仅作构造输入，外部改动不穿透
-2. **源为事实来源**：flag 传 Ref 时 toggle/reset 回写源；title / iframe 的 title 传 Ref 时为活引用
+1. **内部拥有 → 种子拷贝**：`initialList`、flag 的 `init` 等仅作构造输入，外部改动不穿透；变更只走管理器接口，**不对入参引用做响应反馈**
+2. **外部拥有 → 数据源只读**：title / iframe 的 title 传 Ref 时为活引用，管理器只读消费（求值链）或显式换源 setter，**绝不回写**
 3. **派生投影**：mobile-adaptation 的 `mode` 等只存输入、派生值恒为函数投影
 
 ## 相关文档

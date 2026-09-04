@@ -4,7 +4,7 @@
 
 新增五个 hooks 模块：`flag`（布尔开关）、`unique-list`（唯一列表）、`keep-alive`（多页签路由缓存列表与守卫）、`iframe`（iframe 多页签管理与守卫）、`mobile-adaptation`（pc/mobile 模式判定），以及守卫共享的 `_route-meta` 工具模块。
 
-各模块拆为「core / 适配层」两层：core 为无框架依赖的纯逻辑（快照引用稳定、变更方法返回是否实际变化），vue 适配层以 `computed` 投影——未变更的重复调用不触发响应式更新。
+各模块拆为「core / 适配层」两层：core 为无框架依赖的纯逻辑（快照引用稳定、变更方法返回是否实际变化），vue 适配层以 `computed` 投影——未变更的重复调用不触发响应式更新。`title` 同步纳入分层：合成逻辑进 `createTitleCore`，Ref/getter 源由适配层归一为活 getter，响应式绑定经求值链天然保真（对外 API 不变）。
 
 `flag`：`createStatus` / `afterChange` 回调收纯值（`boolean`）；`init` 传 Ref 时源是单一事实来源，toggle/reset 回写源；重复置为同值不算变化、不触发 `afterChange`。
 

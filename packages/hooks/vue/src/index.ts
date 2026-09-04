@@ -1,4 +1,4 @@
-export * from './_route-meta'
+export * from './common/route-meta'
 export * from './flag'
 export * from './iframe'
 export * from './keep-alive'

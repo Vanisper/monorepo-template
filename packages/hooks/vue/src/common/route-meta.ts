@@ -1,5 +1,3 @@
-// 守卫共享的基础设施（非 hook 模块）：前缀 _ 让它在 src 下排在各 hook 之前，
-// 与「工具而非业务 hook」的定位一致；类型与工具仍从根 barrel 导出（KeepAliveManager.metaKeys 等公共 API 依赖）
 import type { RouteLocationNormalized, RouteLocationNormalizedLoaded, Router } from 'vue-router'
 
 /**

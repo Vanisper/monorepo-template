@@ -1,7 +1,7 @@
 import type { RouteLocationNormalized, RouteLocationNormalizedLoaded } from 'vue-router'
-import type { RouteHandler, RouteMetaKeys, RouterGuardSetup } from '../_route-meta'
+import type { RouteHandler, RouteMetaKeys, RouterGuardSetup } from '../common/route-meta'
 import { nextTick } from 'vue'
-import { matchRouteTarget } from '../_route-meta'
+import { matchRouteTarget } from '../common/route-meta'
 
 /** createKeepAliveGuard 的处理函数集合 */
 export interface KeepAliveHandlers {

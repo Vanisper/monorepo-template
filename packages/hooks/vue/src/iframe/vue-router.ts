@@ -4,9 +4,9 @@ import type {
   RouteLocationNormalizedLoaded,
   RouteMeta,
 } from 'vue-router'
-import type { RouteHandler, RouteMetaKeys, RouterGuardSetup } from '../_route-meta'
+import type { RouteHandler, RouteMetaKeys, RouterGuardSetup } from '../common/route-meta'
 import type { IframeOpenOptions } from './index'
-import { matchRouteTarget } from '../_route-meta'
+import { matchRouteTarget } from '../common/route-meta'
 
 /** createIframeGuard 的处理函数集合 */
 export interface IframeGuardHandlers {

@@ -34,8 +34,8 @@
 | flag 的 `init` Ref 单向同步 | 双向同步（回写源） | 源是单一事实来源；重复同值不算变化、不触发 afterChange |
 | `list` 深层响应式数组 | core 冻结快照 + 引用稳定 | 适配层以 `computed` 投影；空串 / null / undefined 不再被过滤——唯一性管理只管唯一性，值语义归调用方 |
 | `createKeepAliveGuard(handlers, metaKeys)` | 同名同形 | 保留「配置 → 安装」两段式，守卫确有配置期与安装期 |
-| `KeepAliveMetaKeys`（iframe 内重复定义） | `RouteMetaKeys`（`_route-meta` 模块） | 去重，名称不再绑定 keep-alive |
-| `isTargetRouteMatch`（两处重复） | `matchRouteTarget`（`_route-meta` 模块导出） | 去重；`config` 从 `any` 收紧为 `unknown` |
+| `KeepAliveMetaKeys`（iframe 内重复定义） | `RouteMetaKeys`（`common/route-meta`） | 去重，名称不再绑定 keep-alive |
+| `isTargetRouteMatch`（两处重复） | `matchRouteTarget`（`common/route-meta` 导出） | 去重；`config` 从 `any` 收紧为 `unknown` |
 | `MOBILE_WIDTH_THRESHOLD = 1024` 魔法值 | `thresholdWidth` 配置项（默认 1024） | 参数化 |
 | `mode` 初始恒为 `'pc'` | 按 UA 初始化，且为 `resolveMode` 纯投影 | 输入（宽度 / 启用开关）变化即时重算 |
 | `setMode(width)` | `setWidth(width)` | 存的是观测量宽度，setter 命名与之对齐 |

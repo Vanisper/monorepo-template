@@ -13,8 +13,10 @@ export interface MobileAdaptationOptions {
 export interface MobileAdaptationManager {
   /** 当前模式（只读） */
   mode: Readonly<Ref<'pc' | 'mobile'>>
-  /** 启用开关，写入 false 后恒为 pc */
-  enable: Ref<boolean>
+  /** 是否启用判定（只读） */
+  enable: Readonly<Ref<boolean>>
+  /** 启用开关；关闭后下次 setMode/resize 恒为 pc */
+  setEnabled: (enable: boolean) => void
   /** 按给定视口宽度重算模式（resize 监听内部已自动做） */
   setMode: (width: number) => void
 }
@@ -41,6 +43,12 @@ export function createMobileAdaptation(options: MobileAdaptationOptions = {}): (
   const mode = ref<'pc' | 'mobile'>(isMobileUA ? 'mobile' : 'pc')
 
   let resizeHandler: (() => void) | null = null
+  // 消费者计数：多个组件同时调用 useMobileAdaptation 时，监听随最后一个消费者卸载才移除
+  let consumerCount = 0
+
+  function setEnabled(value: boolean): void {
+    enable.value = value
+  }
 
   function setMode(width: number): void {
     if (!enable.value) {
@@ -51,6 +59,7 @@ export function createMobileAdaptation(options: MobileAdaptationOptions = {}): (
   }
 
   function registerSideEffects(): void {
+    consumerCount++
     // 多个组件同时调用 useMobileAdaptation 时监听只挂一次
     if (resizeHandler) {
       return
@@ -61,7 +70,8 @@ export function createMobileAdaptation(options: MobileAdaptationOptions = {}): (
   }
 
   function cleanupSideEffects(): void {
-    if (resizeHandler) {
+    consumerCount = Math.max(0, consumerCount - 1)
+    if (consumerCount === 0 && resizeHandler) {
       window.removeEventListener('resize', resizeHandler)
       resizeHandler = null
     }
@@ -75,7 +85,8 @@ export function createMobileAdaptation(options: MobileAdaptationOptions = {}): (
 
     return {
       mode: readonly(mode),
-      enable,
+      enable: readonly(enable),
+      setEnabled,
       setMode,
     }
   }

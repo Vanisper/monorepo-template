@@ -19,10 +19,10 @@ describe('createIframeManager', () => {
     expect(manager.list.value).toHaveLength(1)
   })
 
-  it('closeLoading 标记加载完成', () => {
+  it('markLoaded 标记加载完成', () => {
     const manager = createIframeManager(3)
     manager.open({ path: '/a', src: 'https://a.com' })
-    manager.closeLoading('/a')
+    manager.markLoaded('/a')
     expect(manager.list.value[0]!.isLoading).toBe(false)
   })
 
@@ -61,7 +61,7 @@ describe('createIframeManager', () => {
   it('close 后重新打开会复位加载态', () => {
     const manager = createIframeManager(3)
     manager.open({ path: '/a', src: 'https://a.com' })
-    manager.closeLoading('/a')
+    manager.markLoaded('/a')
     expect(manager.list.value[0]!.isLoading).toBe(false)
     manager.close('/a')
     manager.open({ path: '/a', src: 'https://a.com' })

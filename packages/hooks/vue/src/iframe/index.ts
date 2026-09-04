@@ -1,4 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
+import type { Title } from '../title'
 import { computed, readonly, ref } from 'vue'
 
 /** 单个 iframe 页签记录 */
@@ -7,8 +8,8 @@ export interface IframeRecord {
   path: string
   /** iframe 加载地址 */
   src: string
-  /** 页签标题，支持 getter 动态计算 */
-  title?: string | (() => string)
+  /** 页签标题，复用包内 Title 形态（string / Ref / getter） */
+  title?: Title
   /** 是否处于打开状态（LRU 关闭后为 false） */
   isOpen: boolean
   /** 是否加载中（重新打开时复位为 true） */
@@ -29,7 +30,7 @@ export interface IframeManager {
   /** 关闭（支持批量），关闭后从最近访问序中移除 */
   close: (path: string | string[]) => void
   /** 标记加载完成（iframe onload 时调用） */
-  closeLoading: (path: string) => void
+  markLoaded: (path: string) => void
 }
 
 /**
@@ -39,7 +40,9 @@ export interface IframeManager {
  * 同一时刻最多保留 `maxCache` 个打开页签
  */
 export function createIframeManager(maxCache: number): IframeManager {
-  const list = ref<IframeRecord[]>([])
+  // 深层 ref：页签状态（isOpen/isLoading）就地修改即可触发更新
+  // 显式标注 Ref<IframeRecord[]> 以避开 ref 对 Title 内嵌 Ref 的类型解包（运行时内嵌 Ref 并不被解包）
+  const list = ref<IframeRecord[]>([]) as Ref<IframeRecord[]>
   const recentPathList = ref<string[]>([])
 
   const openedList = computed(() => list.value.filter(item => item.isOpen))
@@ -86,7 +89,7 @@ export function createIframeManager(maxCache: number): IframeManager {
     }
   }
 
-  function closeLoading(path: string): void {
+  function markLoaded(path: string): void {
     const record = findRecord(path)
     if (record) {
       record.isLoading = false
@@ -98,6 +101,6 @@ export function createIframeManager(maxCache: number): IframeManager {
     openedList,
     open,
     close,
-    closeLoading,
+    markLoaded,
   }
 }

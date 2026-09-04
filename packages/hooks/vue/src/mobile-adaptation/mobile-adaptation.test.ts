@@ -63,11 +63,12 @@ describe('createMobileAdaptation', () => {
     stubBrowser('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)', 1440)
     const manager = createMobileAdaptation()()
 
-    manager.enable.value = false
+    manager.setEnabled(false)
+    expect(manager.enable.value).toBe(false)
     manager.setMode(500)
     expect(manager.mode.value).toBe('pc')
 
-    manager.enable.value = true
+    manager.setEnabled(true)
     manager.setMode(500)
     expect(manager.mode.value).toBe('mobile')
   })

@@ -5,7 +5,7 @@ import { computed, isRef, readonly, ref, watch } from 'vue'
 export interface FlagOptions {
   /** 派生状态，缺省为 flag 本身 */
   createStatus?: (flag: Ref<boolean>) => boolean
-  /** flag 变化后的回调（reset 不触发） */
+  /** flag 变化后的回调（reset 不触发；源 Ref 同步引起的变化同样触发） */
   afterChange?: (value: boolean, flag: Ref<boolean>) => void
 }
 

@@ -54,7 +54,7 @@
   },
   "peerDependencies": {
     "vue": "^3.5.0",
-    "vue-router": "^5.3.0"
+    "vue-router": "^5.3.1"
   },
   "peerDependenciesMeta": {
     "vue-router": {

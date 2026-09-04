@@ -41,6 +41,8 @@ import { createKeepAliveGuard } from '@mono/hooks-vue/keep-alive/vue-router'
 
 `meta.iframe` 语义：iframe 地址，或 `true` 表示地址来自 `query.iframe`（两者皆缺则不打开）；`query.iframe` / `query.title` 可覆盖 meta 值。
 
+> **限制**：KeepAlive 守卫通过 `to.matched` 读取组件 name，懒加载路由组件在首次导航时可能尚未解析完成，本次导航不会加入缓存（后续导航正常）。
+
 库内不发布 `declare module 'vue-router'` 全局扩展（避免污染业务路由类型），需要类型提示时在业务侧自行 augment：
 
 ```ts
@@ -67,6 +69,8 @@ export {}
 | `isTargetRouteMatch`（两处重复） | `matchRouteTarget`（`_route-meta` 模块导出） | 去重；`config` 从 `any` 收紧为 `unknown` |
 | `MOBILE_WIDTH_THRESHOLD = 1024` 魔法值 | `thresholdWidth` 配置项（默认 1024） | 参数化 |
 | `mode` 初始恒为 `'pc'` | 按 UA 初始化 | 移动 UA 在 mounted 前状态也正确；UA 判定加 SSR 防御 |
+| `closeLoading()` | `markLoaded()` | 命名澄清：标记加载完成而非关闭页签 |
+| `enable` 可写 Ref | `enable` 只读 + `setEnabled()` | 只读状态 + setter 惯例统一；监听按消费者计数，最后一个卸载才移除 |
 
 两处行为修复（源实现的 bug）：
 

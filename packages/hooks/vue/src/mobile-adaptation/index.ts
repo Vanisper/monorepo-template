@@ -1,5 +1,8 @@
-import type { Ref } from 'vue'
-import { onMounted, onUnmounted, readonly, ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
+import { computed, onMounted, onUnmounted, readonly, ref } from 'vue'
+import { isMobileDevice, resolveMode } from './core'
+
+export * from './core'
 
 /** createMobileAdaptation 的配置项 */
 export interface MobileAdaptationOptions {
@@ -11,36 +14,40 @@ export interface MobileAdaptationOptions {
 
 /** useMobileAdaptation 返回的适配模式管理器 */
 export interface MobileAdaptationManager {
-  /** 当前模式（只读） */
-  mode: Readonly<Ref<'pc' | 'mobile'>>
+  /**
+   * ## 当前模式（只读投影）
+   * `mode` 是判定函数对输入（UA / 观测宽度 / 启用开关）的投影，
+   * 任何输入变化即时重算——不存储独立的模式状态
+   */
+  mode: ComputedRef<'pc' | 'mobile'>
   /** 是否启用判定（只读） */
   enable: Readonly<Ref<boolean>>
-  /** 启用开关；关闭后下次 setMode/resize 恒为 pc */
+  /** 启用开关；变更即时生效（mode 立即重算） */
   setEnabled: (enable: boolean) => void
-  /** 按给定视口宽度重算模式（resize 监听内部已自动做） */
-  setMode: (width: number) => void
-}
-
-/** 移动设备 UA 特征 */
-const MOBILE_UA_PATTERN = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
-
-function isMobileDevice(): boolean {
-  return typeof navigator !== 'undefined' && MOBILE_UA_PATTERN.test(navigator.userAgent)
+  /** 更新观测到的视口宽度（resize 监听内部已自动做），mode 随之重算 */
+  setWidth: (width: number) => void
 }
 
 /**
  * 创建 pc/mobile 模式适配管理器
  *
- * 与 createTitleManager 等直接返回管理器的工厂不同：本工厂返回的
- * `useMobileAdaptation()` 须在 setup 内调用——resize 监听的注册与清理
- * 依赖组件生命周期
+ * - 与 createTitleManager 等直接返回管理器的工厂不同：本工厂返回的
+ *   `useMobileAdaptation()` 须在 setup 内调用——resize 监听的注册与清理
+ *   依赖组件生命周期
+ * - 数据所有权：只存储 `width` 一个观测量，`mode` 恒为 `resolveMode` 的
+ *   派生投影；未观测过宽度（创建后至首次 setWidth 前）按桌面宽度兜底，
+ *   即创建时仅按 UA 判定（无 DOM 访问，SSR 安全）
  */
 export function createMobileAdaptation(options: MobileAdaptationOptions = {}): () => MobileAdaptationManager {
   const enable = ref(options.enable ?? true)
-  // 创建时仅按 UA 给出初始模式（无 DOM 访问，SSR 安全）；宽度判定推迟到 mounted
   const thresholdWidth = options.thresholdWidth ?? 1024
+  // UA 仅在创建时判定一次：会话内 UA 视为不变量
   const isMobileUA = isMobileDevice()
-  const mode = ref<'pc' | 'mobile'>(isMobileUA ? 'mobile' : 'pc')
+  const width = ref(Infinity)
+
+  const mode = computed<'pc' | 'mobile'>(() =>
+    resolveMode({ isMobileUA, width: width.value, thresholdWidth, enabled: enable.value }),
+  )
 
   let resizeHandler: (() => void) | null = null
   // 消费者计数：多个组件同时调用 useMobileAdaptation 时，监听随最后一个消费者卸载才移除
@@ -50,12 +57,8 @@ export function createMobileAdaptation(options: MobileAdaptationOptions = {}): (
     enable.value = value
   }
 
-  function setMode(width: number): void {
-    if (!enable.value) {
-      mode.value = 'pc'
-      return
-    }
-    mode.value = isMobileUA || width < thresholdWidth ? 'mobile' : 'pc'
+  function setWidth(value: number): void {
+    width.value = value
   }
 
   function registerSideEffects(): void {
@@ -64,8 +67,8 @@ export function createMobileAdaptation(options: MobileAdaptationOptions = {}): (
     if (resizeHandler) {
       return
     }
-    setMode(document.documentElement.clientWidth)
-    resizeHandler = () => setMode(document.documentElement.clientWidth)
+    setWidth(document.documentElement.clientWidth)
+    resizeHandler = () => setWidth(document.documentElement.clientWidth)
     window.addEventListener('resize', resizeHandler)
   }
 
@@ -84,10 +87,10 @@ export function createMobileAdaptation(options: MobileAdaptationOptions = {}): (
     onUnmounted(cleanupSideEffects)
 
     return {
-      mode: readonly(mode),
+      mode,
       enable: readonly(enable),
       setEnabled,
-      setMode,
+      setWidth,
     }
   }
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { nextTick, ref } from 'vue'
-import { createFlag } from './index'
+import { nextTick, ref, watch } from 'vue'
+import { createFlag } from './flag'
 
 describe('createFlag', () => {
   it('默认初始为 false，传值可指定初始状态', () => {
@@ -31,33 +31,59 @@ describe('createFlag', () => {
     expect(plain.status.value).toBe(false)
 
     const derived = createFlag(false, {
-      createStatus: flag => !flag.value,
+      createStatus: flag => !flag,
     })
     expect(derived.status.value).toBe(true)
   })
 
-  it('afterChange 在 toggle 时触发，reset 不触发', () => {
+  it('afterChange 在实际变化时触发，重复同值与 reset 不触发', () => {
     const afterChange = vi.fn()
     const manager = createFlag(false, { afterChange })
     manager.toggle()
     manager.toggle(false)
     expect(afterChange).toHaveBeenCalledTimes(2)
-    expect(afterChange).toHaveBeenLastCalledWith(false, expect.anything())
+    expect(afterChange).toHaveBeenLastCalledWith(false)
 
     afterChange.mockClear()
+    manager.toggle(false)
     manager.reset()
     expect(afterChange).not.toHaveBeenCalled()
   })
 
-  it('init 传 Ref 时单向同步：源变化更新 flag，flag 变化不回写源', async () => {
+  it('init 传 Ref 时源是单一事实来源：变更双向同步', async () => {
     const source = ref(false)
     const manager = createFlag(source)
 
-    source.value = true
-    await nextTick()
+    // 本地变更回写源
+    manager.toggle()
+    expect(source.value).toBe(true)
     expect(manager.flag.value).toBe(true)
 
+    // 源被外部改变时同步镜像
+    source.value = false
+    await nextTick()
+    expect(manager.flag.value).toBe(false)
+  })
+
+  it('init 传 Ref 时 reset 同样回写源', () => {
+    const source = ref(true)
+    const manager = createFlag(source)
     manager.toggle(false)
+    manager.reset()
     expect(source.value).toBe(true)
+    expect(manager.flag.value).toBe(true)
+  })
+
+  it('有实际变化才触发响应式更新', () => {
+    const manager = createFlag(true)
+    const seen: boolean[] = []
+    const stop = watch(manager.flag, (value) => {
+      seen.push(value)
+    }, { flush: 'sync' })
+
+    manager.toggle(true)
+    manager.toggle(false)
+    stop()
+    expect(seen).toEqual([false])
   })
 })

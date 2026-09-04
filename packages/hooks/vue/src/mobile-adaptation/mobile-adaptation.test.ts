@@ -34,10 +34,10 @@ afterEach(() => {
 })
 
 describe('createMobileAdaptation', () => {
-  it('移动设备 UA 恒为 mobile，resize 不影响', () => {
+  it('移动设备 UA 恒为 mobile，宽度不参与', () => {
     stubBrowser('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)', 1920)
     const manager = createMobileAdaptation()()
-    manager.setMode(1920)
+    manager.setWidth(1920)
     expect(manager.mode.value).toBe('mobile')
   })
 
@@ -46,10 +46,10 @@ describe('createMobileAdaptation', () => {
     const manager = createMobileAdaptation()()
     expect(manager.mode.value).toBe('pc')
 
-    manager.setMode(800)
+    manager.setWidth(800)
     expect(manager.mode.value).toBe('mobile')
 
-    manager.setMode(1200)
+    manager.setWidth(1200)
     expect(manager.mode.value).toBe('pc')
   })
 
@@ -59,24 +59,23 @@ describe('createMobileAdaptation', () => {
     expect(manager.mode.value).toBe('pc')
   })
 
-  it('enable 关闭后恒为 pc，重新开启恢复判定', () => {
-    stubBrowser('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)', 1440)
+  it('enable 变更即时生效：mode 立即重算而非等下次宽度更新', () => {
+    stubBrowser('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)', 400)
     const manager = createMobileAdaptation()()
+    manager.setWidth(400)
+    expect(manager.mode.value).toBe('mobile')
 
     manager.setEnabled(false)
-    expect(manager.enable.value).toBe(false)
-    manager.setMode(500)
     expect(manager.mode.value).toBe('pc')
 
     manager.setEnabled(true)
-    manager.setMode(500)
     expect(manager.mode.value).toBe('mobile')
   })
 
   it('默认阈值为 1024', () => {
     stubBrowser('Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 1023)
     const manager = createMobileAdaptation()()
-    manager.setMode(1023)
+    manager.setWidth(1023)
     expect(manager.mode.value).toBe('mobile')
   })
 })

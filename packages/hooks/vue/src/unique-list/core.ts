@@ -1,10 +1,12 @@
 /**
  * # 唯一列表管理器实例
+ *
  * 无框架依赖
  */
 export interface UniqueListCore<T = string> {
   /**
    * ## 获取去重后的列表快照
+   *
    * - 按插入顺序
    * - 内容不变时多次读取返回同一引用，有实际变更时更换为新数组；
    *   上层可直接用引用比较判断是否需要更新
@@ -22,18 +24,21 @@ export interface UniqueListCore<T = string> {
   has: (value: T) => boolean
   /**
    * ## 添加
+   *
    * - 自动去重，支持批量
    * - 有实际变化时返回 true
    */
   add: (input: T | readonly T[]) => boolean
   /**
    * ## 移除
+   *
    * - 支持批量
    * - 有实际变化时返回 true
    */
   remove: (input: T | readonly T[]) => boolean
   /**
    * ## 清空
+   *
    * 原本非空时返回 true
    */
   clear: () => boolean
@@ -46,6 +51,7 @@ function toItems<T>(input: T | readonly T[]): readonly T[] {
 
 /**
  * # 创建唯一列表管理器
+ *
  * 纯状态，不依赖响应式
  *
  * @description

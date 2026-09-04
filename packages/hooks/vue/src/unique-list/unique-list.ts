@@ -4,11 +4,13 @@ import { createUniqueListCore } from './core'
 
 /**
  * # 唯一列表管理器实例
+ *
  * Vue 响应式适配
  */
 export interface UniqueListManager<T = string> {
   /**
    * ## 去重后的列表快照
+   *
    * - 按插入顺序；有实际变更时更换引用
    * - `ComputedRef` 在类型层面就表达了「不可赋值」，
    *   无需 `Readonly<Ref<...>>` 式的双重包装（后者会展开成 DeepReadonly 嵌套）
@@ -16,11 +18,13 @@ export interface UniqueListManager<T = string> {
   list: ComputedRef<readonly T[]>
   /**
    * ## 添加
+   *
    * 自动去重，支持批量
    */
   add: (input: T | readonly T[]) => void
   /**
    * ## 移除
+   *
    * 支持批量
    */
   remove: (input: T | readonly T[]) => void
@@ -32,6 +36,7 @@ export interface UniqueListManager<T = string> {
 
 /**
  * # 创建唯一列表管理器
+ *
  * Vue 适配层，模块级也可调用
  *
  * @description

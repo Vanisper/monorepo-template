@@ -1,27 +1,36 @@
 /**
  * # 布尔开关内核实例
+ *
  * 无框架依赖
  */
 export interface FlagCore {
+  // #region ---------[ getter ]---------
   /**
    * ## 获取当前状态
    */
   get: () => boolean
+  // #endregion
+
+  // #region ---------[ action ]---------
   /**
    * ## 翻转状态
+   *
    * - 不传或传非 boolean 时取反；传 boolean 时置为指定值
    * - 有实际变化时返回 true
    */
   toggle: (target?: boolean) => boolean
   /**
    * ## 重置为创建时的初始状态
+   *
    * 有实际变化时返回 true
    */
   reset: () => boolean
+  // #endregion
 }
 
 /**
  * # 创建布尔开关内核
+ *
  * 纯状态，不依赖响应式
  *
  * @description

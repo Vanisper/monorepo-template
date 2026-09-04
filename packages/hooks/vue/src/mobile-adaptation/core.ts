@@ -1,5 +1,6 @@
 /**
  * # pc/mobile 模式判定
+ *
  * 无框架依赖
  */
 
@@ -8,6 +9,7 @@ export const MOBILE_UA_PATTERN: RegExp = /Android|webOS|iPhone|iPad|iPod|BlackBe
 
 /**
  * ## 是否移动设备 UA
+ *
  * 无 navigator 环境（SSR）返回 false
  */
 export function isMobileDevice(): boolean {
@@ -28,6 +30,7 @@ export interface ResolveModeInput {
 
 /**
  * ## 判定当前模式
+ *
  * - 未启用恒为 pc
  * - 移动设备 UA 恒为 mobile（宽度不参与）
  * - 桌面设备按宽度阈值判定

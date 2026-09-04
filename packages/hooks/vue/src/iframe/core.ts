@@ -1,5 +1,6 @@
 /**
  * # iframe 页签记录
+ *
  * 无框架依赖
  */
 export interface IframeRecord {
@@ -17,22 +18,30 @@ export interface IframeRecord {
 
 /**
  * # iframe 页签管理器内核实例
+ *
  * 无框架依赖
  */
 export interface IframeCore {
+  // #region ---------[ getter ]---------
   /**
    * ## 获取全部记录快照
+   *
    * - 内容不变时多次读取返回同一引用，有实际变更时更换为新数组
    * - 返回已冻结的只读数组；记录对象以不可变更新维护，旧引用不会被篡改
    */
   getList: () => readonly IframeRecord[]
   /**
    * ## 获取打开中的记录快照
+   *
    * 引用稳定性语义同 getList
    */
   getOpenedList: () => readonly IframeRecord[]
+  // #endregion
+
+  // #region ---------[ action ]---------
   /**
    * ## 打开页签
+   *
    * - 已存在则复用记录（不更新 src/title），并置顶最近访问序
    * - 按最近访问序做 LRU，超出 `maxCache` 的旧页签关闭并复位加载态
    * - 对外可见状态有实际变化时返回 true（仅最近访问序变化不算）
@@ -40,19 +49,23 @@ export interface IframeCore {
   open: (data: Pick<IframeRecord, 'path' | 'src' | 'title'>) => boolean
   /**
    * ## 关闭页签
+   *
    * - 支持批量；关闭后从最近访问序中移除
    * - 有实际变化时返回 true
    */
   close: (path: string | readonly string[]) => boolean
   /**
    * ## 标记加载完成
+   *
    * 有实际变化时返回 true
    */
   markLoaded: (path: string) => boolean
+  // #endregion
 }
 
 /**
  * # 创建 iframe 页签管理器内核
+ *
  * 纯状态，不依赖响应式
  *
  * @description

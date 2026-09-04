@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createUniqueList } from './index'
+import { watch } from 'vue'
+import { createUniqueList } from './unique-list'
 
 describe('createUniqueList', () => {
   it('add 去重并保持插入顺序', () => {
@@ -9,10 +10,10 @@ describe('createUniqueList', () => {
     expect(manager.list.value).toEqual(['a', 'b'])
   })
 
-  it('add 过滤空字符串', () => {
-    const manager = createUniqueList()
-    manager.add(['', 'a'])
-    expect(manager.list.value).toEqual(['a'])
+  it('空串、null、undefined 都是合法元素', () => {
+    const manager = createUniqueList<string | null | undefined>()
+    manager.add(['', null, undefined])
+    expect(manager.list.value).toEqual(['', null, undefined])
   })
 
   it('remove 支持批量', () => {
@@ -30,5 +31,17 @@ describe('createUniqueList', () => {
   it('接收初始列表', () => {
     const manager = createUniqueList(['x', 'x', 'y'])
     expect(manager.list.value).toEqual(['x', 'y'])
+  })
+
+  it('有实际变化才替换 list 引用', () => {
+    const manager = createUniqueList(['a'])
+    const seen: Array<readonly string[]> = []
+    watch(manager.list, (value) => {
+      seen.push(value)
+    }, { flush: 'sync' })
+
+    manager.add('b')
+    manager.add('b')
+    expect(seen).toEqual([['a', 'b']])
   })
 })

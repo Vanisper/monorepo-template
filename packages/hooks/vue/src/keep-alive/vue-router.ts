@@ -1,7 +1,7 @@
 import type { RouteLocationNormalized, RouteLocationNormalizedLoaded } from 'vue-router'
 import type { RouteHandler, RouteMetaKeys, RouterGuardSetup } from '../_route-meta'
 import { nextTick } from 'vue'
-import { isSameNavigation, matchRouteTarget, resolveRouteDecision } from '../_route-meta'
+import { matchRouteTarget } from '../_route-meta'
 
 /** createKeepAliveGuard 的处理函数集合 */
 export interface KeepAliveHandlers {
@@ -26,7 +26,7 @@ export interface KeepAliveHandlers {
 export function createKeepAliveGuard(handlers: KeepAliveHandlers, metaKeys: RouteMetaKeys): RouterGuardSetup {
   return (router) => {
     router.afterEach(async (to, from) => {
-      if (isSameNavigation(to, from)) {
+      if (to.fullPath === from.fullPath) {
         return
       }
 
@@ -40,7 +40,8 @@ export function createKeepAliveGuard(handlers: KeepAliveHandlers, metaKeys: Rout
         return
       }
 
-      const shouldClear = resolveRouteDecision(handlers.shouldClearCache?.(to, from, metaKeys), shouldClearByMeta(to, from, metaKeys))
+      // 自定义决策显式返回时以其为准，否则回落默认 meta 规则
+      const shouldClear = handlers.shouldClearCache?.(to, from, metaKeys) ?? shouldClearByMeta(to, from, metaKeys)
 
       if (shouldClear) {
         handlers.remove(componentName)

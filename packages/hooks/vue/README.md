@@ -146,4 +146,4 @@ KeepAlive 守卫的匹配目标是**路由 name**，写进 `include` 的是**组
 
 ## 相关文档
 
-- [设计方法论与迁移记录](../../../docs/notes/hooks-vue.md)：三条约定的推导、从 VueUse 借鉴了什么、各模块实现决策、从 crab-net-frontend 迁入的 API 对照
+- [设计方法论与实现记录](../../../docs/notes/hooks-vue.md)：三条约定的推导、从 VueUse 借鉴了什么、各模块实现决策与包内扩展流程

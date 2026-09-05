@@ -1,6 +1,6 @@
-# hooks-vue：设计方法论与迁移记录
+# hooks-vue：设计方法论与实现记录
 
-包的使用文档见 [packages/hooks/vue/README.md](../../packages/hooks/vue/README.md)。本文记录仓库级信息：hook 接口形态背后的方法论、从 VueUse 借鉴了什么、各模块的实现决策、从 crab-net-frontend 迁入的适配对照与包内扩展流程。
+包的使用文档见 [packages/hooks/vue/README.md](../../packages/hooks/vue/README.md)。本文记录仓库级信息：hook 接口形态背后的方法论、从 VueUse 借鉴了什么、各模块的实现决策与包内扩展流程。
 
 ## 方法论：三条原则
 
@@ -82,28 +82,6 @@ list.value = next
 ### mobile-adaptation：去掉工厂双层
 
 原 `createMobileAdaptation()` 返回 `useMobileAdaptation()`、后者须在 setup 内调用，是为了把 resize 监听挂到组件生命周期上。改用 `matchMedia` 后监听极轻，直接由原则 3 接管：`useMobileAdaptation()` 一层调用，在哪个 scope 创建就归哪个 scope。视口是全局状态，模块级创建一次共享即可。
-
-## 从 crab-net-frontend 迁入的适配记录
-
-源实现在 `crab-net-frontend/packages/composables`，本包 API 对照：
-
-| 源 API | 本包 API | 变化 |
-| --- | --- | --- |
-| `createFlag(init, { createStatus, afterChange })` 返回管理器 | `useToggle(init)` 返回 `[ref, toggle]` 或 `toggle` | 状态即可写 ref；派生与回调由调用方 `computed` / `watch`，不再内置 |
-| `createUniqueList()` 返回 `{ list, add, remove, clean }` | `useUniqueList()` 返回 `{ list, has, add, remove, clear }` | `clean → clear`；方法返回是否实际变化；不再过滤空串 / null / undefined |
-| `createKeepAlive(metaKeys)` | 直接用 `useUniqueList<string>()` | 管理器本身不消费 `metaKeys`，去掉这层壳 |
-| `createKeepAliveGuard(handlers, metaKeys)(router)` | `useKeepAliveGuard(router, { include, metaKeys?, filter?, shouldClearCache? })` | 一段式；`enable` 必填 → `filter` 可选；`metaKeys` 有默认值；返回卸载函数；清除移至 `beforeResolve` |
-| `createIframeManager(maxCache)` | `useIframeTabs({ maxOpen })` | 新增 `remove`；`closeLoading → markLoaded`；记录不可变更新 |
-| `createIframeGuard(handlers, metaKeys)(router)` | `useIframeGuard(router, { tabs, metaKeys?, iframeKey?, titleKey?, filter?, shouldClose? })` | 一段式；meta 键名可配置；`meta.iframe: true` 且无 query 时跳过（源实现会把 boolean 当 src） |
-| `createMobileAdaptation(options)` 返回 `useMobileAdaptation` | `useMobileAdaptation(options)` | 去掉双层；`resize` + `clientWidth` → `matchMedia`；`enable` 可写 Ref 走 `toRef` 借用 / 拥有；`setWidth` 随之取消 |
-| `createTitleManager` 内置 `document.title` 同步 | `usePageTitle` + `useDocumentTitle` | 状态与副作用分离；`enableDynamicTitle → dynamic` 可写 ref；主标题与兜底都为空时不带分隔符 |
-
-源实现的行为修复：
-
-1. mobile-adaptation 在 `onMounted` 回调内注册 `onUnmounted`——此时无活跃实例，清理从不生效、监听泄漏
-2. KeepAlive 守卫在 `afterEach` 中先移除再加入——旧实例成为孤儿（见上文）
-3. iframe 守卫 `meta.iframe: true` 且无 `query.iframe` 时把 boolean 当 src
-4. iframe 记录就地变更——旧快照被篡改
 
 ## 包内扩展流程
 

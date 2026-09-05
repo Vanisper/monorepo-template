@@ -31,6 +31,8 @@
     "uniapp",
     "vitejs",
     "unplugin",
-    "vite"
+    "vite",
+    "vnode",
+    "SSOT"
   ]
 }

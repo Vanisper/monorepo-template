@@ -46,6 +46,7 @@ catalogs:
     cspell: ^10.2.0
     eslint: ^10.9.1
   test:
+    happy-dom: ^20.14.0
     vitest: ^4.1.11
   web:
     vue: ^3.5.24

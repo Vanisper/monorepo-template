@@ -1,6 +1,6 @@
 # @mono/hooks-vue
 
-hooks 域的 Vue 场景逻辑复用包：无渲染的状态管理 hooks 与路由守卫，覆盖标题、开关、列表缓存、iframe 多页签、pc/mobile 适配等通用场景。
+hooks 域的 Vue 逻辑复用包：无渲染的状态 hooks、浏览器副作用 hooks 与路由守卫，覆盖标题、开关、列表、iframe 多页签、pc/mobile 适配等后台系统常见场景。
 
 ## 安装
 
@@ -11,173 +11,138 @@ pnpm add @mono/hooks-vue --filter <target-pkg>
 依赖约定：
 
 - `vue` 为 peerDependency
-- `vue-router` 为 **optional** peerDependency——仅路由守卫需要它（且只是类型依赖），不使用守卫的项目无需安装
+- `vue-router` 为 **optional** peerDependency——仅路由守卫需要它（且只是类型依赖）；守卫走 `@mono/hooks-vue/vue-router` 子路径，根入口不引用 vue-router 类型，不使用守卫的项目无需安装
 
 ## 模块总览
 
 | 模块 | 一句话 | 导入 |
 | --- | --- | --- |
-| `title` | 页面标题三级合成（override > route > app） | 根入口 |
-| `flag` | 布尔开关状态机 | 根入口 |
-| `unique-list` | 唯一列表（Set 去重、插入序、快照引用稳定） | 根入口 |
-| `keep-alive` | KeepAlive 缓存列表 | 根入口 |
-| `iframe` | iframe 多页签管理（LRU） | 根入口 |
-| `mobile-adaptation` | pc/mobile 模式判定 | 根入口 |
-| `keep-alive` 守卫 | 按路由 meta 维护缓存列表 | `@mono/hooks-vue/keep-alive/vue-router` |
-| `iframe` 守卫 | 按 `meta.iframe` 自动开合页签 | `@mono/hooks-vue/iframe/vue-router` |
+| `useToggle` | 布尔开关：拥有 / 借用两种形态 | 根入口 |
+| `useUniqueList` | 唯一列表（去重、插入序、引用稳定） | 根入口 |
+| `usePageTitle` / `useDocumentTitle` | 标题三级合成 + 同步到 `document.title` | 根入口 |
+| `useIframeTabs` | iframe 多页签管理（LRU） | 根入口 |
+| `useMobileAdaptation` | pc / mobile 模式判定 | 根入口 |
+| `useMediaQuery` / `useEventListener` | 浏览器基础设施 | 根入口 |
+| `useKeepAliveGuard` | 按路由 meta 维护 `<KeepAlive :include>` 列表 | `@mono/hooks-vue/vue-router` |
+| `useIframeGuard` | 按路由 meta 自动开合 iframe 页签 | `@mono/hooks-vue/vue-router` |
 
-守卫走子路径导入：根入口的 d.ts 不携带 vue-router 类型，未安装它的消费方类型解析不受影响。
+## 三条约定
+
+读任何一个 hook 之前先知道这三条，接口形态都由它们推出：
+
+1. **状态只有一个存放处。** 传 ref 进来是「借用」——hook 直接在你的 ref 上操作，不复制、不 watch；传值进来是「拥有」——hook 创建 ref 并返还给你。任何情况下 hook 都不会为同一个数据维护第二份拷贝。
+2. **状态是值本身时暴露可写 ref，写入有不变量时暴露只读派生 + 方法。** `useToggle` 的开关、`enabled`、`dynamic` 都是可写 ref，可直接 `v-model`；唯一列表、iframe 页签、标题合成的写入各有规则（去重 / LRU / 切路由清覆盖），走方法。
+3. **副作用归属于创建它的 effect scope。** 在组件 setup 内调用随组件卸载自动清理；模块级调用与应用同寿；要手动控制就自建 `effectScope()`。触碰 DOM 的 hook 一律可注入宿主（`window` / `document` / `navigator`），SSR 传 `null`、测试传假对象。
 
 ## 使用
 
-### title
+### useToggle
 
 ```ts
-import { createTitleManager, useTitle } from '@mono/hooks-vue'
+import { useToggle } from '@mono/hooks-vue'
+
+// 拥有：hook 创建状态并返还，可直接 v-model
+const [visible, toggle] = useToggle(false)
+toggle() // 取反
+toggle(true) // 置为指定值
+visible.value = false // 与 toggle 写的是同一个 ref
+
+// 借用：状态本来就在你手里，只拿一个翻转函数
+const collapsed = ref(false)
+const toggleCollapsed = useToggle(collapsed)
+```
+
+非 boolean 入参一律视为「未传」，`@click="toggle"` 收到的事件对象不会被误当成值。需要变化回调时在 ref 上 `watch`。
+
+### useUniqueList
+
+```ts
+import { useUniqueList } from '@mono/hooks-vue'
+
+const { list, has, add, remove, clear } = useUniqueList(['a'])
+
+add(['b', 'a']) // 去重，支持批量；有实际变化时返回 true
+remove('a')
+list.value // 只读快照：内容不变时保持同一引用，模板 / computed 可安心依赖
+```
+
+### usePageTitle + useDocumentTitle
+
+```ts
+import { useDocumentTitle, usePageTitle } from '@mono/hooks-vue'
 
 // 应用入口创建一次；各级标题源支持 string / Ref / getter
-const title = createTitleManager({ appTitle: 'XX 管理系统', fallbackTitle: '无标题' })
+const title = usePageTitle({ appTitle: 'XX 管理系统', fallbackTitle: '无标题' })
 
 // router.afterEach 中设置路由标题（会顺带清空覆盖标题）
 title.setRouteTitle('用户管理')
-
 // iframe 等特殊场景覆盖标题，传空串显式清空
 title.setOverrideTitle('百度一下')
+// 动态标题开关是可写 ref
+title.dynamic.value = false
 
-// 将最终标题同步到 document.title：setup 内调用随组件卸载停止，模块级常驻
-useTitle(title.finalTitle)
+// 同步到 document.title 是独立的副作用 hook：组件内调用随卸载停止并恢复原标题，模块级常驻
+useDocumentTitle(title.finalTitle)
 ```
 
-### flag
+`useDocumentTitle` 也可独立同步任意标题源；`document` 可注入。
+
+### useIframeTabs
 
 ```ts
-import { createFlag } from '@mono/hooks-vue'
+import { useIframeTabs } from '@mono/hooks-vue'
 
-const dialog = createFlag(false, {
-  afterChange: value => console.log('弹层', value ? '打开' : '关闭'),
-})
-
-dialog.toggle() // 翻转
-dialog.toggle(true) // 置为指定值
-dialog.reset() // 重置为创建时的初始状态
-dialog.status.value // 派生状态（createStatus 可自定义派生）
-```
-
-数据所有权在管理器内部：`init` 是种子，变更只走 toggle / reset 接口。需要跟随外部源时由调用方显式表达：
-
-```ts
-const dialog = createFlag(source.value)
-watch(source, value => dialog.toggle(value))
-```
-
-### unique-list
-
-```ts
-import { createUniqueList } from '@mono/hooks-vue'
-
-const list = createUniqueList(['a'])
-
-list.add(['b', 'a']) // 去重，支持批量
-list.remove('a')
-list.clear()
-list.list.value // 只读快照：内容不变时保持同一引用，模板/计算属性可安心依赖
-```
-
-### keep-alive（多页签路由缓存）
-
-```ts
-import { createKeepAlive } from '@mono/hooks-vue'
-import { createKeepAliveGuard } from '@mono/hooks-vue/keep-alive/vue-router'
-
-const metaKeys = { keepKey: 'keep', noKeepKey: 'noKeep' }
-const keepAlive = createKeepAlive(metaKeys)
-
-// 绑定到 <KeepAlive :include="keepAlive.list.value" />
-createKeepAliveGuard(
-  { add: keepAlive.add, remove: keepAlive.remove, enable: () => true },
-  metaKeys,
-)(router)
-```
-
-路由表声明缓存策略（匹配目标为**路由 name**，KeepAlive `include` 用的才是组件 name）：
-
-```ts
-const routes = [
-  { path: '/a', name: 'a', component: PageA, meta: { keep: true } }, // 缓存
-  { path: '/b', name: 'b', component: PageB, meta: { keep: false } }, // 每次重新挂载
-  { path: '/d', name: 'd', component: PageD, meta: { noKeep: ['b'] } }, // 从 b 过来不缓存
-]
-```
-
-> 懒加载路由组件首次导航时可能尚未解析完成，本次导航不会加入缓存（后续导航正常）；script setup 组件需 `defineOptions({ name })` 显式命名。
-
-### iframe（多页签 iframe 管理）
-
-```ts
-import { createIframeManager } from '@mono/hooks-vue'
-import { createIframeGuard } from '@mono/hooks-vue/iframe/vue-router'
-
-const metaKeys = { keepKey: 'keep', noKeepKey: 'noKeep' }
-const iframe = createIframeManager(5) // 最多同时保留 5 个打开页签，超出按 LRU 关闭最旧
+const iframe = useIframeTabs({ maxOpen: 5 }) // 同时最多 5 个打开页签，超出按 LRU 关闭最旧
 
 iframe.open({ path: '/report', src: 'https://example.com', title: () => `报表（${count.value}）` })
 iframe.markLoaded('/report') // iframe onload 时调用
-iframe.close(['/report']) // 支持批量
+iframe.close(['/report']) // 关闭（记录保留），支持批量
+iframe.remove('/report') // 移除记录
 
-createIframeGuard(
-  { open: iframe.open, close: iframe.close },
-  metaKeys,
-)(router)
+iframe.openedTabs.value // 打开中的页签；标题在模板中用 toValue(tab.title) 读取
 ```
 
-路由侧声明（`query.iframe` / `query.title` 可覆盖 meta 值）：
+### useMobileAdaptation
+
+```ts
+import { useMobileAdaptation } from '@mono/hooks-vue'
+
+// 模块级创建一次全局共享即可（视口是全局状态）；基于 matchMedia，只在跨越阈值时触发
+const { mode, isMobile, enabled } = useMobileAdaptation({ thresholdWidth: 768 })
+// mode.value: 'pc' | 'mobile'——移动 UA 恒 mobile，桌面按视口宽度判定
+enabled.value = false // 关闭判定恒为 pc
+```
+
+### 路由守卫
+
+守卫从子路径导入，签名统一为 `useXxxGuard(router, options)`，返回卸载函数。
+
+```ts
+import { useIframeTabs, useUniqueList } from '@mono/hooks-vue'
+import { useIframeGuard, useKeepAliveGuard } from '@mono/hooks-vue/vue-router'
+
+// KeepAlive：守卫向列表写组件名，列表绑定到 <KeepAlive :include="include.list.value">
+const include = useUniqueList<string>()
+useKeepAliveGuard(router, { include })
+
+// iframe：守卫按 meta.iframe 开合页签
+const iframe = useIframeTabs()
+useIframeGuard(router, { tabs: iframe })
+```
+
+路由表声明（meta 键名可通过 `metaKeys` / `iframeKey` / `titleKey` 配置，默认如下）：
 
 ```ts
 const routes = [
-  { path: '/report', name: 'report', component: Empty, meta: { iframe: 'https://example.com' } },
+  { path: '/a', name: 'a', component: PageA, meta: { keepAlive: true } }, // 缓存
+  { path: '/b', name: 'b', component: PageB, meta: { keepAlive: false } }, // 每次重新挂载
+  { path: '/d', name: 'd', component: PageD, meta: { noKeepAlive: ['b'] } }, // 从 b 过来不缓存
+  { path: '/report', name: 'report', component: Empty, meta: { iframe: 'https://example.com', title: '报表' } },
 ]
 ```
 
-需要 `meta.iframe` 的类型提示时，在业务侧自行 augment：
-
-```ts
-declare module 'vue-router' {
-  interface RouteMeta {
-    iframe?: string | boolean
-  }
-}
-
-export {}
-```
-
-### mobile-adaptation
-
-```ts
-import { createMobileAdaptation } from '@mono/hooks-vue'
-
-// 工厂返回 useMobileAdaptation()，须在 setup 内调用（resize 监听挂组件生命周期）
-const useMobileAdaptation = createMobileAdaptation({ thresholdWidth: 768 })
-
-// 组件内
-const { mode, enable } = useMobileAdaptation()
-// mode.value: 'pc' | 'mobile'——移动 UA 恒 mobile，桌面按视口宽度判定
-// enable / setWidth 输入变化时 mode 即时重算
-```
-
-## 架构：core / 适配层
-
-各模块拆为两层：
-
-- **`core.ts` 纯逻辑内核**：无框架依赖的纯状态 / 纯函数，变更方法返回是否实际变化，列表类提供快照引用稳定语义（内容不变 `getList()` 返回同一冻结引用）。未来 react / uniapp 侧适配可复用同一 core。
-- **Vue 适配层**：`shallowRef` 版本号 + `computed` 读 core 快照——未变更的重复调用零响应式开销。
-- **响应式源的归一**：Ref 在适配层归一为 `() => ref.value` 活引用存入 core，computed 求值链穿过它读到 ref——源的响应式绑定天然保真，无需通知机制。
-
-数据所有权（各模块在注释中显式声明，判断单位是每个数据项）：
-
-1. **内部拥有 → 种子拷贝**：`initialList`、flag 的 `init` 等仅作构造输入，外部改动不穿透；变更只走管理器接口，**不对入参引用做响应反馈**
-2. **外部拥有 → 数据源只读**：title / iframe 的 title 传 Ref 时为活引用，管理器只读消费（求值链）或显式换源 setter，**绝不回写**
-3. **派生投影**：mobile-adaptation 的 `mode` 等只存输入、派生值恒为函数投影
+KeepAlive 守卫的匹配目标是**路由 name**，写进 `include` 的是**组件 name**：script setup 组件需 `defineOptions({ name })` 显式命名。iframe 守卫的 `query.iframe` / `query.title` 可覆盖 meta 值；需要 `meta.iframe` 的类型提示时在业务侧 augment `RouteMeta`。
 
 ## 相关文档
 
-- [迁移与扩展记录](../../docs/guide/hooks-vue.md)：从 crab-net-frontend 迁入的 API 对照、包内扩展流程
+- [设计方法论与迁移记录](../../docs/guide/hooks-vue.md)：三条约定的推导、从 VueUse 借鉴了什么、各模块实现决策、从 crab-net-frontend 迁入的 API 对照

@@ -15,24 +15,14 @@
         "default": "./dist/index.cjs"
       }
     },
-    "./iframe/vue-router": {
+    "./vue-router": {
       "import": {
-        "types": "./dist/iframe/vue-router.d.mts",
-        "default": "./dist/iframe/vue-router.mjs"
+        "types": "./dist/vue-router.d.mts",
+        "default": "./dist/vue-router.mjs"
       },
       "require": {
-        "types": "./dist/iframe/vue-router.d.cts",
-        "default": "./dist/iframe/vue-router.cjs"
-      }
-    },
-    "./keep-alive/vue-router": {
-      "import": {
-        "types": "./dist/keep-alive/vue-router.d.mts",
-        "default": "./dist/keep-alive/vue-router.mjs"
-      },
-      "require": {
-        "types": "./dist/keep-alive/vue-router.d.cts",
-        "default": "./dist/keep-alive/vue-router.cjs"
+        "types": "./dist/vue-router.d.cts",
+        "default": "./dist/vue-router.cjs"
       }
     }
   },
@@ -48,7 +38,7 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "check:pkg": "publint && attw --pack . --exclude-entrypoints './iframe/vue-router' './keep-alive/vue-router' && attw --pack . --entrypoints './iframe/vue-router' './keep-alive/vue-router' --profile esm-only",
+    "check:pkg": "publint && attw --pack . --exclude-entrypoints './vue-router' && attw --pack . --entrypoints './vue-router' --profile esm-only",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json"
   },
@@ -63,6 +53,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "catalog:check",
+    "happy-dom": "catalog:test",
     "publint": "catalog:check",
     "tsdown": "catalog:build",
     "typescript": "catalog:build",

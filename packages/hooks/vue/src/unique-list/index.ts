@@ -1,2 +1,2 @@
 export * from './core'
-export * from './unique-list'
+export * from './use-unique-list'

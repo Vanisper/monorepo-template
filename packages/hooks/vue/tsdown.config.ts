@@ -1,12 +1,11 @@
 import { defineConfig } from 'tsdown'
 
 export default defineConfig({
-  // 守卫走子路径入口：根入口不含 vue-router 类型，不使用守卫的消费方无需安装 vue-router 的类型
-  entry: [
-    'src/index.ts',
-    'src/iframe/vue-router.ts',
-    'src/keep-alive/vue-router.ts',
-  ],
+  // 路由守卫走独立子路径入口：根入口的 d.ts 不引用 vue-router，不使用守卫的消费方无需安装它
+  entry: {
+    'index': 'src/index.ts',
+    'vue-router': 'src/vue-router/index.ts',
+  },
   format: ['esm', 'cjs'],
   dts: true,
   sourcemap: true,

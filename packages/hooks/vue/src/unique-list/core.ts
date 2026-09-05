@@ -1,138 +1,70 @@
 /**
- * # 唯一列表管理器实例
+ * # 唯一列表的纯函数内核
  *
- * 无框架依赖
+ * @description
+ * - 无框架依赖、无内部状态：每个函数都是 `(list, input) => list` 形态的 reducer
+ * - 契约：**无实际变化时返回入参 `list` 的同一引用**，有变化时返回新的冻结数组——
+ *   上层用引用比较即可判断是否变化，`shallowRef` 赋值同一引用时不会触发更新
+ * - 以 Set 语义去重（SameValueZero），保持插入顺序；**不过滤任何值**——
+ *   空串、`null`、`undefined`、`NaN` 都是合法元素，值语义归调用方
+ * - 批量用 `Array.isArray` 判定；`T` 自身为数组时无法与「一批元素」区分，请拆开传入
  */
-export interface UniqueListCore<T = string> {
-  /**
-   * ## 获取去重后的列表快照
-   *
-   * - 按插入顺序
-   * - 内容不变时多次读取返回同一引用，有实际变更时更换为新数组；
-   *   上层可直接用引用比较判断是否需要更新
-   * - 返回已冻结的只读数组，外部修改不影响内部状态
-   */
-  getList: () => readonly T[]
-  /**
-   * ## 获取当前元素数量
-   */
-  getSize: () => number
 
-  /**
-   * ## 是否存在
-   */
-  has: (value: T) => boolean
-  /**
-   * ## 添加
-   *
-   * - 自动去重，支持批量
-   * - 有实际变化时返回 true
-   */
-  add: (input: T | readonly T[]) => boolean
-  /**
-   * ## 移除
-   *
-   * - 支持批量
-   * - 有实际变化时返回 true
-   */
-  remove: (input: T | readonly T[]) => boolean
-  /**
-   * ## 清空
-   *
-   * 原本非空时返回 true
-   */
-  clear: () => boolean
-}
+/** 单值或一批值：与 Set 一致，单值（含 null / undefined）原样入列，只有数组才当批量 */
+export type ListInput<T> = T | readonly T[]
 
-function toItems<T>(input: T | readonly T[]): readonly T[] {
-  // 与 Set 一致：单值（含 null / undefined）原样入列；只有数组才当批量
+function toItems<T>(input: ListInput<T>): readonly T[] {
   return Array.isArray(input) ? input : [input as T]
 }
 
+function freeze<T>(items: Iterable<T>): readonly T[] {
+  return Object.freeze(Array.from(items))
+}
+
 /**
- * # 创建唯一列表管理器
+ * ## 去重
  *
- * 纯状态，不依赖响应式
- *
- * @description
- * - 内部以 Set 去重（SameValueZero），`getList` 按插入顺序输出
- * - **不过滤任何值**：空串、`null`、`undefined`、`NaN` 都是合法元素
- * - 有实际变更时 `getList` 换为新冻结数组，未变更时保持原引用，
- *   上层可放心用引用比较做缓存 / 跳过更新
- * - 本管理器作用是管理维护列表的唯一性，入参 initialList 仅作为初始构造参数；
- *   初始参数外部引用的数据改变也不会影响内部列表，数据所有权在本管理器内部
- * - 批量用 `Array.isArray` 判定；`T` 自身为数组时无法与「一批元素」区分，请拆开传入
- *
- * @remarks 复杂度
- * - `getList` / `getSize` / `has`：O(1)
- * - `add` / `remove`：无实际变更时 O(k)（k 为入参数量）；
- *   有实际变更时额外 O(n) 重建快照（n 为当前列表长度）
- * - `clear`：无实际变更时 O(1)，有实际变更时 O(n)
- * - 适合「低频变更、高频读取」；高频逐条增删场景请先攒批再提交
+ * 返回按首次出现顺序去重后的冻结数组；用于把外部传入的初始列表归一为内部形态
  */
-export function createUniqueListCore<T = string>(initialList: readonly T[] = []): UniqueListCore<T> {
-  const set = new Set<T>(initialList)
-  let cachedList: readonly T[] = Object.freeze(Array.from(set))
+export function dedupe<T>(list: readonly T[]): readonly T[] {
+  return freeze(new Set(list))
+}
 
-  function rebuildCache(): void {
-    cachedList = Object.freeze(Array.from(set))
+/**
+ * ## 添加
+ *
+ * - 已存在的元素跳过；全部已存在时返回入参同一引用
+ * - 复杂度：O(n + k)，n 为列表长度、k 为入参数量
+ */
+export function addUnique<T>(list: readonly T[], input: ListInput<T>): readonly T[] {
+  const set = new Set(list)
+  const before = set.size
+  for (const item of toItems(input)) {
+    set.add(item)
   }
+  return set.size === before ? list : freeze(set)
+}
 
-  return {
-    // #region ---------[ getter ]---------
-    getList(): readonly T[] {
-      return cachedList
-    },
-    getSize(): number {
-      return set.size
-    },
-    // #endregion
+/**
+ * ## 移除
+ *
+ * - 未命中任何元素时返回入参同一引用
+ * - 复杂度：O(n + k)
+ */
+export function removeItems<T>(list: readonly T[], input: ListInput<T>): readonly T[] {
+  const targets = new Set(toItems(input))
+  const next = list.filter(item => !targets.has(item))
+  return next.length === list.length ? list : freeze(next)
+}
 
-    // #region ---------[ action ]---------
-    has(value: T): boolean {
-      return set.has(value)
-    },
-    add(input: T | readonly T[]): boolean {
-      const before = set.size
-      for (const item of toItems(input)) set.add(item)
+/** 共享的空列表：清空后各实例返回同一引用，比较与缓存更省心 */
+const EMPTY: readonly never[] = Object.freeze([])
 
-      if (set.size !== before)
-        rebuildCache()
-
-      return set.size !== before
-      // ? 可读性较好的实现（暂时留存）
-      // let changed = false
-      // for (const item of toItems(input)) {
-      //   if (!set.has(item)) {
-      //     set.add(item)
-      //     changed = true
-      //   }
-      // }
-      // if (changed) {
-      //   rebuildCache()
-      // }
-      // return changed
-    },
-    remove(input: T | readonly T[]): boolean {
-      let changed = false
-      for (const item of toItems(input)) {
-        if (set.delete(item)) {
-          changed = true
-        }
-      }
-      if (changed) {
-        rebuildCache()
-      }
-      return changed
-    },
-    clear(): boolean {
-      if (set.size === 0) {
-        return false
-      }
-      set.clear()
-      rebuildCache()
-      return true
-    },
-    // #endregion
-  }
+/**
+ * ## 清空
+ *
+ * 原本已空时返回入参同一引用
+ */
+export function clearList<T>(list: readonly T[]): readonly T[] {
+  return list.length === 0 ? list : EMPTY
 }

@@ -1,125 +1,116 @@
+import type { IframeTabsState } from './core'
 import { describe, expect, it } from 'vitest'
-import { createIframeCore } from './core'
+import { closeIframeTabs, EMPTY_IFRAME_STATE, markIframeLoaded, openIframeTab, removeIframeTabs } from './core'
 
-describe('createIframeCore', () => {
-  it('open 新建记录并标记加载中', () => {
-    const core = createIframeCore(3)
-    expect(core.open({ path: '/a', src: 'https://a.com' })).toBe(true)
-    expect(core.getList()).toHaveLength(1)
-    const record = core.getList()[0]!
-    expect(record.isOpen).toBe(true)
-    expect(record.isLoading).toBe(true)
-    expect(core.getOpenedList()).toHaveLength(1)
+const MAX = 2
+
+function open(state: IframeTabsState, path: string, src = `https://${path.slice(1)}.com`): IframeTabsState {
+  return openIframeTab(state, { path, src }, MAX)
+}
+
+function find(state: IframeTabsState, path: string) {
+  return state.tabs.find(tab => tab.path === path)
+}
+
+describe('iframe core', () => {
+  describe('openIframeTab', () => {
+    it('新页签追加记录并置为打开、加载中', () => {
+      const state = open(EMPTY_IFRAME_STATE, '/a')
+      expect(state.tabs).toEqual([{ path: '/a', src: 'https://a.com', isOpen: true, isLoading: true }])
+      expect(state.recent).toEqual(['/a'])
+    })
+
+    it('重复打开已打开且最近访问的页签：返回原状态', () => {
+      const state = open(EMPTY_IFRAME_STATE, '/a')
+      expect(open(state, '/a')).toBe(state)
+    })
+
+    it('重复打开已打开但非最近的页签：仅访问序变化，tabs 保持原引用', () => {
+      const s1 = open(open(EMPTY_IFRAME_STATE, '/a'), '/b')
+      const s2 = open(s1, '/a')
+      expect(s2).not.toBe(s1)
+      expect(s2.tabs).toBe(s1.tabs)
+      expect(s2.recent).toEqual(['/a', '/b'])
+    })
+
+    it('已存在的记录复用，不更新 src', () => {
+      const s1 = open(EMPTY_IFRAME_STATE, '/a')
+      const s2 = open(closeIframeTabs(s1, '/a'), '/a', 'https://other.com')
+      expect(find(s2, '/a')?.src).toBe('https://a.com')
+      expect(find(s2, '/a')?.isOpen).toBe(true)
+    })
+
+    it('超出 maxOpen 时按 LRU 关闭最旧页签并复位加载态、移出访问序', () => {
+      let state = open(open(EMPTY_IFRAME_STATE, '/a'), '/b')
+      state = markIframeLoaded(state, '/a')
+      state = open(state, '/c')
+
+      expect(find(state, '/a')).toMatchObject({ isOpen: false, isLoading: true })
+      expect(find(state, '/b')?.isOpen).toBe(true)
+      expect(find(state, '/c')?.isOpen).toBe(true)
+      expect(state.recent).toEqual(['/c', '/b'])
+    })
+
+    it('淘汰以最近访问序而非打开顺序为准', () => {
+      let state = open(open(EMPTY_IFRAME_STATE, '/a'), '/b')
+      state = open(state, '/a')
+      state = open(state, '/c')
+      expect(find(state, '/b')?.isOpen).toBe(false)
+      expect(find(state, '/a')?.isOpen).toBe(true)
+    })
+
+    it('不可变更新：旧快照不被篡改', () => {
+      const s1 = open(EMPTY_IFRAME_STATE, '/a')
+      const before = find(s1, '/a')
+      const s2 = closeIframeTabs(s1, '/a')
+      expect(before?.isOpen).toBe(true)
+      expect(find(s2, '/a')?.isOpen).toBe(false)
+      expect(Object.isFrozen(s2.tabs)).toBe(true)
+    })
   })
 
-  it('open 已存在路径时复用记录，不更新 src/title', () => {
-    const core = createIframeCore(3)
-    core.open({ path: '/a', src: 'https://a.com', title: 'A' })
-    core.open({ path: '/a', src: 'https://changed.com', title: 'B' })
-    expect(core.getList()).toHaveLength(1)
-    expect(core.getList()[0]!.src).toBe('https://a.com')
-    expect(core.getList()[0]!.title).toBe('A')
+  describe('closeIframeTabs', () => {
+    it('支持批量关闭并移出访问序', () => {
+      const s1 = open(open(EMPTY_IFRAME_STATE, '/a'), '/b')
+      const s2 = closeIframeTabs(s1, ['/a', '/b'])
+      expect(s2.tabs.every(tab => !tab.isOpen)).toBe(true)
+      expect(s2.recent).toEqual([])
+    })
+
+    it('未命中打开中的页签时返回原状态', () => {
+      const s1 = closeIframeTabs(open(EMPTY_IFRAME_STATE, '/a'), '/a')
+      expect(closeIframeTabs(s1, '/a')).toBe(s1)
+      expect(closeIframeTabs(s1, '/x')).toBe(s1)
+    })
   })
 
-  it('重复打开已打开的页签不算对外变化，快照保持同一引用', () => {
-    const core = createIframeCore(3)
-    core.open({ path: '/a', src: 'https://a.com' })
-    const snapshot = core.getList()
-    expect(core.open({ path: '/a', src: 'https://a.com' })).toBe(false)
-    expect(core.getList()).toBe(snapshot)
+  describe('removeIframeTabs', () => {
+    it('整体删除记录（含已关闭）', () => {
+      const s1 = closeIframeTabs(open(open(EMPTY_IFRAME_STATE, '/a'), '/b'), '/a')
+      const s2 = removeIframeTabs(s1, ['/a', '/b'])
+      expect(s2.tabs).toEqual([])
+      expect(s2.recent).toEqual([])
+    })
+
+    it('未命中时返回原状态', () => {
+      const s1 = open(EMPTY_IFRAME_STATE, '/a')
+      expect(removeIframeTabs(s1, '/x')).toBe(s1)
+    })
   })
 
-  it('markLoaded 标记加载完成，重复标记不算变化', () => {
-    const core = createIframeCore(3)
-    core.open({ path: '/a', src: 'https://a.com' })
-    expect(core.markLoaded('/a')).toBe(true)
-    expect(core.getList()[0]!.isLoading).toBe(false)
-    expect(core.markLoaded('/a')).toBe(false)
-    expect(core.markLoaded('/missing')).toBe(false)
-  })
+  describe('markIframeLoaded', () => {
+    it('标记加载完成，重复标记返回原状态', () => {
+      const s1 = open(EMPTY_IFRAME_STATE, '/a')
+      const s2 = markIframeLoaded(s1, '/a')
+      expect(find(s2, '/a')?.isLoading).toBe(false)
+      expect(markIframeLoaded(s2, '/a')).toBe(s2)
+      expect(markIframeLoaded(s2, '/x')).toBe(s2)
+    })
 
-  it('lRU：超过 maxCache 时关闭最早访问的页签', () => {
-    const core = createIframeCore(2)
-    core.open({ path: '/a', src: 'https://a.com' })
-    core.open({ path: '/b', src: 'https://b.com' })
-    // 重新访问 a，使 b 成为最旧
-    core.open({ path: '/a', src: 'https://a.com' })
-    core.open({ path: '/c', src: 'https://c.com' })
-
-    const states = new Map(core.getList().map(r => [r.path, r.isOpen]))
-    expect(states.get('/a')).toBe(true)
-    expect(states.get('/b')).toBe(false)
-    expect(states.get('/c')).toBe(true)
-    expect(core.getOpenedList().map(r => r.path)).toEqual(['/a', '/c'])
-  })
-
-  it('lRU 关闭的页签复位加载态', () => {
-    const core = createIframeCore(1)
-    core.open({ path: '/a', src: 'https://a.com' })
-    core.markLoaded('/a')
-    core.open({ path: '/b', src: 'https://b.com' })
-    const closed = core.getList().find(r => r.path === '/a')!
-    expect(closed.isOpen).toBe(false)
-    expect(closed.isLoading).toBe(true)
-  })
-
-  it('close 支持批量并移出最近访问序', () => {
-    const core = createIframeCore(2)
-    core.open({ path: '/a', src: 'https://a.com' })
-    core.open({ path: '/b', src: 'https://b.com' })
-    core.open({ path: '/c', src: 'https://c.com' })
-    // 上一步 LRU 已关闭 a；重新打开 a 后 b、c 中最旧的 b 被关闭
-    core.open({ path: '/a', src: 'https://a.com' })
-
-    expect(core.close(['/a', '/b'])).toBe(true)
-    expect(core.getOpenedList().map(r => r.path)).toEqual(['/c'])
-    // a 已移出最近访问序，再开两个不会触发对 a 的 LRU 关闭
-    core.open({ path: '/b', src: 'https://b.com' })
-    core.open({ path: '/d', src: 'https://d.com' })
-    const a = core.getList().find(r => r.path === '/a')!
-    expect(a.isOpen).toBe(false)
-  })
-
-  it('close 关闭未打开的页签不算变化', () => {
-    const core = createIframeCore(3)
-    core.open({ path: '/a', src: 'https://a.com' })
-    expect(core.close('/a')).toBe(true)
-    expect(core.close('/a')).toBe(false)
-    expect(core.close('/missing')).toBe(false)
-  })
-
-  it('close 后重新打开会复位加载态', () => {
-    const core = createIframeCore(3)
-    core.open({ path: '/a', src: 'https://a.com' })
-    core.markLoaded('/a')
-    expect(core.getList()[0]!.isLoading).toBe(false)
-    core.close('/a')
-    core.open({ path: '/a', src: 'https://a.com' })
-    expect(core.getList()[0]!.isLoading).toBe(true)
-  })
-
-  it('title 支持 getter 动态计算', () => {
-    let label = '列表'
-    const core = createIframeCore(3)
-    core.open({ path: '/a', src: 'https://a.com', title: () => label })
-    const record = core.getList()[0]!
-    const title = record.title as () => string
-    expect(title()).toBe('列表')
-
-    label = '列表（2 条未读）'
-    expect(title()).toBe('列表（2 条未读）')
-  })
-
-  it('快照已冻结，未被变更的记录对象保持旧引用', () => {
-    const core = createIframeCore(3)
-    core.open({ path: '/a', src: 'https://a.com' })
-    const before = core.getList()
-    expect(Object.isFrozen(before)).toBe(true)
-
-    core.open({ path: '/b', src: 'https://b.com' })
-    const after = core.getList()
-    expect(after).not.toBe(before)
-    expect(after[0]).toBe(before[0])
-    expect(after[1]!.path).toBe('/b')
+    it('重新打开后加载态复位', () => {
+      let state = markIframeLoaded(open(EMPTY_IFRAME_STATE, '/a'), '/a')
+      state = open(closeIframeTabs(state, '/a'), '/a')
+      expect(find(state, '/a')?.isLoading).toBe(true)
+    })
   })
 })

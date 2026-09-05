@@ -1,2 +1,3 @@
 export * from './core'
-export * from './title'
+export * from './use-document-title'
+export * from './use-page-title'

@@ -32,6 +32,6 @@
     "vitejs",
     "unplugin",
     "vite",
-    "unstub"
+    "vnode"
   ]
 }

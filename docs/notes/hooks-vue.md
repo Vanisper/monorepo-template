@@ -107,4 +107,4 @@ list.value = next
 
 ## 包内扩展流程
 
-新增 hook 时先按三条原则决定形态：入参是借用还是拥有、暴露 ref 还是派生 + 方法、副作用如何归属与注入。有独立复杂度的逻辑进 `core.ts` 并裸测。验证路径：`pnpm typecheck && pnpm test`（包内）→ 根级 `pnpm lint / spell` → 变更走 changeset（`@mono/hooks-vue` 按语义化级别）。新增包才需要 [add-package.md](./add-package.md) 的完整流程。
+新增 hook 时先按三条原则决定形态：入参是借用还是拥有、暴露 ref 还是派生 + 方法、副作用如何归属与注入。有独立复杂度的逻辑进 `core.ts` 并裸测。验证路径：`pnpm typecheck && pnpm test`（包内）→ 根级 `pnpm lint / spell` → 变更走 changeset（`@mono/hooks-vue` 按语义化级别）。新增包才需要 [add-package.md](../guide/add-package.md) 的完整流程。

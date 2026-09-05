@@ -25,12 +25,12 @@ export interface IframeTab {
 /** 打开页签的输入 */
 export type IframeOpenInput = Pick<IframeTab, 'path' | 'src' | 'title'>
 
-/** 多页签状态 */
+/** 多页签状态；对象由 reducer 冻结，字段 readonly 让类型与运行时一致 */
 export interface IframeTabsState {
   /** 全部记录，按首次打开顺序 */
-  tabs: readonly IframeTab[]
+  readonly tabs: readonly IframeTab[]
   /** 打开中页签的最近访问序（新 → 旧），只存 path */
-  recent: readonly string[]
+  readonly recent: readonly string[]
 }
 
 /** 单个或一批 path */

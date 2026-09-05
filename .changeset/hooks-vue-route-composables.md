@@ -14,4 +14,4 @@
 - `useIframeTabs`：iframe 多页签（LRU、不可变更新）
 - `useMobileAdaptation`：pc / mobile 模式判定，基于 `matchMedia`
 - `useMediaQuery` / `useEventListener` / `tryOnScopeDispose`：浏览器与 scope 基础设施；触碰 DOM 的 hook 均支持注入 `window` / `document` / `navigator`
-- 子路径 `@mono/hooks-vue/vue-router`：`useKeepAliveGuard(router, options)`、`useIframeGuard(router, options)`，返回卸载函数；`vue-router` 为 optional peerDependency，根入口不引用其类型
+- 子路径 `@mono/hooks-vue/vue-router`：`useKeepAliveGuard(router, options)`、`useIframeGuard(router, options)`，返回卸载函数；`vue-router` 为 optional peerDependency，根入口不引用其类型。`useKeepAliveGuard` 的 `include` 需提供 `add / remove / has`（`useUniqueList` 满足），导航中止 / 重定向时据此恢复已移除的缓存名

@@ -28,8 +28,18 @@ function makeRouter(): Router {
   })
 }
 
+/** 带状态的 include 假实现：spy 记录调用，Set 维护内容供 has 查询 */
+function fakeInclude() {
+  const names = new Set<string>()
+  return {
+    add: vi.fn((name: string) => names.add(name)),
+    remove: vi.fn((name: string) => names.delete(name)),
+    has: vi.fn((name: string) => names.has(name)),
+  }
+}
+
 function installSpiedGuard(router: Router, extra: Partial<Parameters<typeof useKeepAliveGuard>[1]> = {}) {
-  const include = { add: vi.fn(), remove: vi.fn() }
+  const include = fakeInclude()
   const stop = useKeepAliveGuard(router, { include, metaKeys, ...extra })
   return { ...include, stop }
 }
@@ -132,6 +142,123 @@ describe('useKeepAliveGuard', () => {
     expect(include.has('PageC')).toBe(true)
   })
 
+  it('被后续守卫重定向时恢复已移除的缓存（原导航不触发 afterEach）', async () => {
+    const router = makeRouter()
+    const include = useUniqueList<string>()
+    useKeepAliveGuard(router, { include, metaKeys })
+    let redirect = false
+    router.beforeResolve(to => to.name === 'c' && redirect ? '/b' : undefined)
+
+    await router.push('/c')
+    await router.push('/a')
+    expect(include.list.value).toEqual(['PageC', 'PageA'])
+
+    redirect = true
+    await router.push('/c')
+
+    expect(router.currentRoute.value.name).toBe('b')
+    // 恢复的名字追加在末尾；include 的顺序对 KeepAlive 无语义，只比较集合
+    expect([...include.list.value].sort()).toEqual(['PageA', 'PageB', 'PageC'])
+  })
+
+  it('后续守卫抛错时，残留记录在下一次导航开始前结算', async () => {
+    const router = makeRouter()
+    const include = useUniqueList<string>()
+    useKeepAliveGuard(router, { include, metaKeys })
+    router.onError(() => {})
+    let fail = false
+    router.beforeResolve((to) => {
+      if (to.name === 'c' && fail) {
+        throw new Error('boom')
+      }
+    })
+
+    await router.push('/c')
+    await router.push('/a')
+
+    fail = true
+    await router.push('/c').catch(() => {})
+    expect(router.currentRoute.value.name).toBe('a')
+
+    fail = false
+    await router.push('/b')
+    expect([...include.list.value].sort()).toEqual(['PageA', 'PageB', 'PageC'])
+  })
+
+  describe('并发导航', () => {
+    /**
+     * 构造确定性交错：导航 A（→ /c，会移除 PageC）经过被测守卫后停在一个后置守卫里，
+     * 在那里发起导航 B（→ /b），并按 `hold` 决定 A 何时继续。A 恢复后被 vue-router 判为 CANCELLED。
+     */
+    function raceAfterGuard(router: Router, hold: (b: Promise<unknown>) => Promise<unknown>) {
+      let armed = true
+      let b: Promise<unknown> = Promise.resolve()
+      router.beforeResolve(async (to) => {
+        if (to.name === 'c' && armed) {
+          armed = false
+          b = router.push('/b')
+          await hold(b)
+        }
+      })
+      return {
+        get b() {
+          return b
+        },
+      }
+    }
+
+    async function prime(router: Router, include: ReturnType<typeof useUniqueList<string>>) {
+      await router.push('/c')
+      await router.push('/a')
+      expect(include.has('PageC')).toBe(true)
+    }
+
+    it('被挤掉导航的取消回调落在后来者登记之后、完成之前：不得清掉后来者的记录', async () => {
+      const router = makeRouter()
+      const include = useUniqueList<string>()
+      useKeepAliveGuard(router, { include, metaKeys })
+      await prime(router, include)
+
+      // B 到达后置守卫（此时 B 已在被测守卫中登记）时放行 A，并把 B 扣住直到 A 的 afterEach 跑完
+      let releaseA!: () => void
+      let releaseB!: () => void
+      const aMayContinue = new Promise<void>((resolve) => {
+        releaseA = resolve
+      })
+      const bMayContinue = new Promise<void>((resolve) => {
+        releaseB = resolve
+      })
+      const race = raceAfterGuard(router, () => aMayContinue)
+      router.beforeResolve(async (to) => {
+        if (to.name === 'b') {
+          releaseA()
+          await bMayContinue
+        }
+      })
+
+      await router.push('/c') // A：被 CANCELLED，afterEach(A) 已执行，此时 pending 是 B 的记录
+      expect(router.currentRoute.value.name).toBe('a')
+      releaseB()
+      await race.b
+
+      expect(router.currentRoute.value.name).toBe('b')
+      expect([...include.list.value].sort()).toEqual(['PageA', 'PageB', 'PageC'])
+    })
+
+    it('后来者在被挤掉导航挂起期间完整跑完：其 beforeResolve 结算残留记录，取消回调无事可做', async () => {
+      const router = makeRouter()
+      const include = useUniqueList<string>()
+      useKeepAliveGuard(router, { include, metaKeys })
+      await prime(router, include)
+
+      raceAfterGuard(router, b => b)
+      await router.push('/c')
+
+      expect(router.currentRoute.value.name).toBe('b')
+      expect([...include.list.value].sort()).toEqual(['PageA', 'PageB', 'PageC'])
+    })
+  })
+
   it('meta[noKeepKey] 命中 from 路由名时清除缓存', async () => {
     const router = makeRouter()
     const { add, remove } = installSpiedGuard(router)
@@ -159,7 +286,7 @@ describe('useKeepAliveGuard', () => {
       history: createMemoryHistory(),
       routes: [{ path: '/a', name: 'a', component: PageA, meta: { keepAlive: true } }],
     })
-    const include = { add: vi.fn(), remove: vi.fn() }
+    const include = fakeInclude()
     useKeepAliveGuard(router, { include })
 
     await router.push('/a')
@@ -179,7 +306,7 @@ describe('useKeepAliveGuard', () => {
 
   it('处于 effect scope 内时随 scope 销毁自动卸载', async () => {
     const router = makeRouter()
-    const include = { add: vi.fn(), remove: vi.fn() }
+    const include = fakeInclude()
     const scope = effectScope()
     scope.run(() => useKeepAliveGuard(router, { include, metaKeys }))
     scope.stop()

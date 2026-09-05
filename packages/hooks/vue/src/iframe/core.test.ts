@@ -67,6 +67,19 @@ describe('iframe core', () => {
       expect(find(s2, '/a')?.isOpen).toBe(false)
       expect(Object.isFrozen(s2.tabs)).toBe(true)
     })
+
+    it('状态对象与字段在类型和运行时都只读', () => {
+      const state = open(EMPTY_IFRAME_STATE, '/a')
+      expect(Object.isFrozen(state)).toBe(true)
+      expect(() => {
+        // @ts-expect-error tabs 为 readonly 字段
+        state.tabs = []
+      }).toThrow(TypeError)
+      expect(() => {
+        // @ts-expect-error recent 为 readonly 字段
+        state.recent = []
+      }).toThrow(TypeError)
+    })
   })
 
   describe('closeIframeTabs', () => {

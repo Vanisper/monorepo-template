@@ -12,8 +12,8 @@ export interface RouteMetaKeys {
   noKeepKey: string
 }
 
-/** 默认 Meta 键 */
-export const DEFAULT_ROUTE_META_KEYS: RouteMetaKeys = Object.freeze({
+/** 默认 Meta 键（已冻结，类型同步为只读） */
+export const DEFAULT_ROUTE_META_KEYS: Readonly<RouteMetaKeys> = Object.freeze({
   keepKey: 'keepAlive',
   noKeepKey: 'noKeepAlive',
 })

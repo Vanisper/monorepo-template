@@ -122,6 +122,7 @@ import { useIframeTabs, useUniqueList } from '@mono/hooks-vue'
 import { useIframeGuard, useKeepAliveGuard } from '@mono/hooks-vue/vue-router'
 
 // KeepAlive：守卫向列表写组件名，列表绑定到 <KeepAlive :include="include.list.value">
+// include 需提供 add / remove / has（useUniqueList 天然满足；接 store 等自定义容器时实现这三个方法）
 const include = useUniqueList<string>()
 useKeepAliveGuard(router, { include })
 

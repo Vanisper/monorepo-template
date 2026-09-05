@@ -37,6 +37,7 @@
     "@arethetypeswrong/cli": "catalog:check",
     "@tsdown/css": "catalog:build",
     "@vitejs/plugin-vue": "catalog:build",
+    "happy-dom": "catalog:test",
     "publint": "catalog:check",
     "tsdown": "catalog:build",
     "typescript": "catalog:build",

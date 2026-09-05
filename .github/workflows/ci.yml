@@ -29,6 +29,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Spell check
+        run: pnpm spell
+
       - name: Typecheck
         run: pnpm typecheck
 

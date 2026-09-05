@@ -9,6 +9,7 @@ docs/
 ├── README.md                              # 本文档：导航 + 规划
 ├── guide/                                 # 使用指南（面向使用模板的人）
 ├── adr/                                   # 技术决策记录（Architecture Decision Records）
+├── notes/                                 # 领域专题与迁移记录
 └── research/
     └── 2026-09-monorepo-tech-selection.md # 技术选型调研（✅ 已完成）
 ```
@@ -24,6 +25,12 @@ docs/
 | `dependency-management.md` | ✅ 已完成 | catalog 治理规则：什么依赖进 catalog、workspace:* 引用内部包、如何升级共享依赖；pnpm 常用命令（`pnpm why` / `--filter`） |
 | `versioning.md` | ✅ 已完成 | Changesets 分步工作流：`changeset` → `version` → `tag`；内部自治包不发 npm 的用法；恢复 `publish:npm` 的条件与步骤；`fixed`/`linked` 版本策略何时启用 |
 | `ci.md` | ✅ 已完成 | CI 工作流：触发条件、流水线结构、各步骤说明、设计要点 |
+
+### notes/ 领域专题与迁移记录
+
+| 文档 | 状态 | 内容大纲 |
+|---|---|---|
+| `hooks-vue.md` | ✅ 已完成 | `@mono/hooks-vue` 的设计原则、实现决策、迁移记录与扩展流程 |
 
 ### adr/ 技术决策记录
 
@@ -45,9 +52,9 @@ docs/
 
 - 一律使用中文；代码块、命令、字段名保持英文原文。
 - 文档面向「半年后的自己」：写清前提与原因，不只写操作步骤。
-- guide 面向操作，adr 面向「为什么」；同一个话题 adr 引用 guide 的操作细节，guide 不重复论证选型。
+- guide 面向模板使用者的操作，notes 面向具体领域或包的专题记录，adr 面向仓库级「为什么」；同一个话题 adr 可引用 guide 的操作细节，guide 不重复论证选型。
 - 调研类结论必须注明来源链接（继承 research 报告的惯例）。
-- 文档与代码同步：改动脚本、配置、目录结构时，同步更新对应 guide 文档。
+- 文档与代码同步：改动脚本、配置、目录结构或包的公开接口时，同步更新对应文档（guide / notes）。
 
 ## 优先级（已全部完成）
 

@@ -161,7 +161,7 @@ pnpm changeset pre exit
 `.github/workflows/release.yml` 在每次 push 到 main 时运行 `changesets/action`，自动完成阶段 2-3：
 
 - main 上有未消费的 changeset → 自动创建/更新 **`chore: version packages` PR**（跑 `changeset version`，消费 changeset、bump 版本号、生成 CHANGELOG）
-- 该 PR 被合并后 → 执行 `publish-script`（`pnpm build && pnpm changeset tag`，**只打 tag、不发 npm**），并推送 tag、按各包 CHANGELOG 内容**自动创建 GitHub Release**
+- 该 PR 被合并后 → 执行 `publish-script`（`pnpm release`，内部先构建，再由 `scripts/tag-bumped.mjs` **只打 tag、不发 npm**），并推送 tag、按各包 CHANGELOG 内容**自动创建 GitHub Release**
 
 效果：你只需要在 feature PR 里写好 changeset 并合并，之后的发版动作（version PR → 合并 → tag → Release）全部自动。
 

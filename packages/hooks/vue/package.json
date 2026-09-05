@@ -14,6 +14,16 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./vue-router": {
+      "import": {
+        "types": "./dist/vue-router.d.mts",
+        "default": "./dist/vue-router.mjs"
+      },
+      "require": {
+        "types": "./dist/vue-router.d.cts",
+        "default": "./dist/vue-router.cjs"
+      }
     }
   },
   "main": "./dist/index.cjs",
@@ -28,19 +38,27 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "check:pkg": "publint && attw --pack .",
+    "check:pkg": "publint && attw --pack . --exclude-entrypoints './vue-router' && attw --pack . --entrypoints './vue-router' --profile esm-only",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json"
   },
   "peerDependencies": {
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "vue-router": "^5.3.1"
+  },
+  "peerDependenciesMeta": {
+    "vue-router": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "catalog:check",
+    "happy-dom": "catalog:test",
     "publint": "catalog:check",
     "tsdown": "catalog:build",
     "typescript": "catalog:build",
     "vitest": "catalog:test",
-    "vue": "catalog:web"
+    "vue": "catalog:web",
+    "vue-router": "catalog:web"
   }
 }

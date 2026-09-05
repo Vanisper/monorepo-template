@@ -68,7 +68,10 @@ export function useIframeGuard(router: Router, options: IframeGuardOptions): () 
   const { tabs, iframeKey = 'iframe', titleKey = 'title', filter, shouldClose } = options
   const metaKeys = resolveRouteMetaKeys(options.metaKeys)
 
-  const stop = router.afterEach((to, from) => {
+  const stop = router.afterEach((to, from, failure) => {
+    if (failure) {
+      return
+    }
     if (to.fullPath === from.fullPath || filter?.(to, from) === false) {
       return
     }
@@ -98,9 +101,9 @@ export function useIframeGuard(router: Router, options: IframeGuardOptions): () 
 }
 
 /** 读取 iframe meta：地址字符串，或 true 表示地址来自 query */
-function readIframeMeta(meta: RouteMeta, key: string): string | boolean | undefined {
+function readIframeMeta(meta: RouteMeta, key: string): string | true | undefined {
   const value = meta[key]
-  return typeof value === 'string' || typeof value === 'boolean' ? value : undefined
+  return typeof value === 'string' || value === true ? value : undefined
 }
 
 /** 读取 meta 中的字符串值 */

@@ -65,3 +65,7 @@ pnpm tag           # 3. 打 git tag（内部自治到此结束）
 - [依赖管理](./docs/guide/dependency-management.md)
 - [版本发布](./docs/guide/versioning.md)
 - [技术决策（ADR）](./docs/adr/)
+
+专题记录：
+
+- [Vue Hooks 设计与迁移](./docs/notes/hooks-vue.md)

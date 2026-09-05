@@ -12,6 +12,7 @@ import { matchRouteTarget, resolveRouteMetaKeys } from './route-meta'
 export interface KeepAliveInclude {
   add: (name: string) => unknown
   remove: (name: string) => unknown
+  has?: (name: string) => boolean
 }
 
 /**
@@ -60,12 +61,25 @@ export interface KeepAliveGuardOptions {
 export function useKeepAliveGuard(router: Router, options: KeepAliveGuardOptions): () => void {
   const { include, filter, shouldClearCache } = options
   const metaKeys = resolveRouteMetaKeys(options.metaKeys)
+  const managedNames = new Set<string>()
+  let lastSkip: { key: string, value: boolean } | undefined
+  let pendingRemoval: { key: string, name: string } | undefined
 
   function skip(to: RouteLocationNormalized, from: RouteLocationNormalizedLoaded): boolean {
-    return to.fullPath === from.fullPath || filter?.(to, from) === false
+    if (to.fullPath === from.fullPath) {
+      return true
+    }
+    const key = navigationKey(to, from)
+    if (lastSkip?.key === key) {
+      return lastSkip.value
+    }
+    const value = filter?.(to, from) === false
+    lastSkip = { key, value }
+    return value
   }
 
   const stopBeforeResolve = router.beforeResolve(async (to, from) => {
+    pendingRemoval = undefined
     if (skip(to, from)) {
       return
     }
@@ -75,14 +89,29 @@ export function useKeepAliveGuard(router: Router, options: KeepAliveGuardOptions
     }
     const shouldClear = shouldClearCache?.(to, from, metaKeys) ?? shouldClearByMeta(to, from, metaKeys)
     if (shouldClear) {
+      const wasIncluded = include.has?.(componentName) ?? managedNames.has(componentName)
       include.remove(componentName)
+      if (wasIncluded) {
+        pendingRemoval = { key: navigationKey(to, from), name: componentName }
+      }
       // 等 KeepAlive 的 include 监听（post flush）执行完：此时 from 仍是当前页，旧实例被真正卸载
       await nextTick()
     }
   })
 
-  const stopAfterEach = router.afterEach((to, from) => {
-    if (skip(to, from)) {
+  const stopAfterEach = router.afterEach((to, from, failure) => {
+    if (failure) {
+      if (pendingRemoval?.key === navigationKey(to, from)) {
+        include.add(pendingRemoval.name)
+      }
+      pendingRemoval = undefined
+      lastSkip = undefined
+      return
+    }
+    const skipped = skip(to, from)
+    pendingRemoval = undefined
+    lastSkip = undefined
+    if (skipped) {
       return
     }
     const componentName = getRouteComponentName(to)
@@ -91,6 +120,7 @@ export function useKeepAliveGuard(router: Router, options: KeepAliveGuardOptions
       return
     }
     include.add(componentName)
+    managedNames.add(componentName)
   })
 
   const stop = (): void => {
@@ -99,6 +129,10 @@ export function useKeepAliveGuard(router: Router, options: KeepAliveGuardOptions
   }
   tryOnScopeDispose(stop)
   return stop
+}
+
+function navigationKey(to: RouteLocationNormalized, from: RouteLocationNormalizedLoaded): string {
+  return `${to.fullPath}\0${from.fullPath}`
 }
 
 /** 读取路由记录对应组件的 name */

@@ -47,6 +47,43 @@ describe('useIframeGuard', () => {
     expect(tabs.tabs.value).toHaveLength(0)
   })
 
+  it('meta.iframe 为 false 时不打开，也不按 iframe 路由关闭', async () => {
+    const tabs = { open: vi.fn(), close: vi.fn() }
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/disabled', name: 'disabled', component: Empty, meta: { iframe: false } },
+        { path: '/normal', name: 'normal', component: Empty },
+      ],
+    })
+    useIframeGuard(router, { tabs })
+
+    await router.push('/disabled?iframe=https://unexpected.example')
+    await router.push('/normal')
+
+    expect(tabs.open).not.toHaveBeenCalled()
+    expect(tabs.close).not.toHaveBeenCalled()
+  })
+
+  it('导航失败时不打开或关闭页签', async () => {
+    const tabs = { open: vi.fn(), close: vi.fn() }
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/normal', name: 'normal', component: Empty },
+        { path: '/iframe', name: 'iframe', component: Empty, meta: { iframe: 'https://iframe.example' } },
+      ],
+    })
+    useIframeGuard(router, { tabs })
+    router.beforeResolve(to => to.name === 'iframe' ? false : undefined)
+
+    await router.push('/normal')
+    await router.push('/iframe')
+
+    expect(tabs.open).not.toHaveBeenCalled()
+    expect(tabs.close).not.toHaveBeenCalled()
+  })
+
   it('离开 iframe 路由时默认关闭', async () => {
     const { router, find } = setup()
     await router.push('/iframe-a')

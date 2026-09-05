@@ -11,15 +11,15 @@
 /** 页签记录 */
 export interface IframeTab {
   /** 路由 fullPath，作为记录唯一键 */
-  path: string
+  readonly path: string
   /** iframe 加载地址 */
-  src: string
+  readonly src: string
   /** 页签标题；框架响应式形态由适配层归一为 getter 后存入 */
-  title?: string | (() => string)
+  readonly title?: string | (() => string)
   /** 是否处于打开状态（LRU 淘汰或显式关闭后为 false，记录仍保留） */
-  isOpen: boolean
+  readonly isOpen: boolean
   /** 是否加载中（重新打开时复位为 true） */
-  isLoading: boolean
+  readonly isLoading: boolean
 }
 
 /** 打开页签的输入 */
@@ -38,6 +38,14 @@ export type PathInput = string | readonly string[]
 
 function freeze<T>(items: readonly T[]): readonly T[] {
   return Object.freeze(items)
+}
+
+function freezeTab(tab: IframeTab): IframeTab {
+  return Object.freeze(tab)
+}
+
+function createState(tabs: readonly IframeTab[], recent: readonly string[]): IframeTabsState {
+  return Object.freeze({ tabs, recent })
 }
 
 function toPaths(input: PathInput): ReadonlySet<string> {
@@ -60,8 +68,8 @@ export const EMPTY_IFRAME_STATE: IframeTabsState = Object.freeze({
 export function openIframeTab(state: IframeTabsState, input: IframeOpenInput, maxOpen: number): IframeTabsState {
   const existing = state.tabs.find(tab => tab.path === input.path)
   const opened: IframeTab = existing
-    ? (existing.isOpen ? existing : { ...existing, isOpen: true, isLoading: true })
-    : { ...input, isOpen: true, isLoading: true }
+    ? (existing.isOpen ? existing : freezeTab({ ...existing, isOpen: true, isLoading: true }))
+    : freezeTab({ ...input, isOpen: true, isLoading: true })
 
   let tabs = existing
     ? (opened === existing ? state.tabs : freeze(state.tabs.map(tab => (tab === existing ? opened : tab))))
@@ -72,14 +80,14 @@ export function openIframeTab(state: IframeTabsState, input: IframeOpenInput, ma
   // LRU：超出 maxOpen 的旧页签关闭，并从最近访问序移除
   const evicted = new Set(recent.slice(Math.max(0, maxOpen)))
   if (evicted.size) {
-    tabs = freeze(tabs.map(tab => (evicted.has(tab.path) ? { ...tab, isOpen: false, isLoading: true } : tab)))
+    tabs = freeze(tabs.map(tab => (evicted.has(tab.path) ? freezeTab({ ...tab, isOpen: false, isLoading: true }) : tab)))
   }
   const nextRecent = evicted.size ? recent.filter(path => !evicted.has(path)) : recent
 
   if (tabs === state.tabs && isSameOrder(nextRecent, state.recent)) {
     return state
   }
-  return { tabs, recent: freeze(nextRecent) }
+  return createState(tabs, freeze(nextRecent))
 }
 
 /**
@@ -95,12 +103,12 @@ export function closeIframeTabs(state: IframeTabsState, input: PathInput): Ifram
       return tab
     }
     changed = true
-    return { ...tab, isOpen: false, isLoading: true }
+    return freezeTab({ ...tab, isOpen: false, isLoading: true })
   })
   if (!changed) {
     return state
   }
-  return { tabs: freeze(tabs), recent: freeze(state.recent.filter(path => !targets.has(path))) }
+  return createState(freeze(tabs), freeze(state.recent.filter(path => !targets.has(path))))
 }
 
 /**
@@ -114,7 +122,7 @@ export function removeIframeTabs(state: IframeTabsState, input: PathInput): Ifra
   if (tabs.length === state.tabs.length) {
     return state
   }
-  return { tabs: freeze(tabs), recent: freeze(state.recent.filter(path => !targets.has(path))) }
+  return createState(freeze(tabs), freeze(state.recent.filter(path => !targets.has(path))))
 }
 
 /**
@@ -127,10 +135,10 @@ export function markIframeLoaded(state: IframeTabsState, path: string): IframeTa
   if (!existing?.isLoading) {
     return state
   }
-  return {
-    tabs: freeze(state.tabs.map(tab => (tab === existing ? { ...tab, isLoading: false } : tab))),
-    recent: state.recent,
-  }
+  return createState(
+    freeze(state.tabs.map(tab => (tab === existing ? freezeTab({ ...tab, isLoading: false }) : tab))),
+    state.recent,
+  )
 }
 
 function isSameOrder(a: readonly string[], b: readonly string[]): boolean {

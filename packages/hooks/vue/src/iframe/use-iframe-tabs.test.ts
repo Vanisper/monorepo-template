@@ -64,4 +64,14 @@ describe('useIframeTabs', () => {
     name.value = '外部（新）'
     expect(toValue(iframe.tabs.value[1]?.title)).toBe('外部（新）')
   })
+
+  it('页签对象运行时不可变', () => {
+    const iframe = useIframeTabs()
+    iframe.open({ path: '/a', src: 'https://a.com' })
+    const tab = iframe.tabs.value[0]!
+
+    expect(Object.isFrozen(tab)).toBe(true)
+    Reflect.set(tab, 'isOpen', false)
+    expect(tab.isOpen).toBe(true)
+  })
 })

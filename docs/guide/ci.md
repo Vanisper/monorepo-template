@@ -10,7 +10,7 @@
 ## 流水线结构
 
 ```
-checkout → Setup pnpm → Setup Node → Install → Lint → Typecheck → Build → Test → Check packages
+checkout → Setup pnpm → Setup Node → Install → Lint → Spell check → Typecheck → Build → Test → Check packages
 ```
 
 | 步骤 | 命令 | 说明 |
@@ -20,6 +20,7 @@ checkout → Setup pnpm → Setup Node → Install → Lint → Typecheck → Bu
 | Setup Node | `actions/setup-node@v7` | Node 22 + pnpm 缓存 |
 | Install | `pnpm install --frozen-lockfile` | 严格按 lockfile 安装 |
 | Lint | `pnpm lint` | ESLint 全仓检查 |
+| Spell check | `pnpm spell` | CSpell 拼写检查 |
 | Typecheck | `pnpm typecheck` | 类型检查（tsc --noEmit） |
 | Build | `pnpm build` | turbo 按拓扑构建所有包 |
 | Test | `pnpm test` | Vitest 单元测试 |

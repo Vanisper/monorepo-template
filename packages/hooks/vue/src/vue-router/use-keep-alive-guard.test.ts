@@ -2,6 +2,7 @@ import type { Router } from 'vue-router'
 import { describe, expect, it, vi } from 'vitest'
 import { effectScope, nextTick } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { useUniqueList } from '../unique-list/use-unique-list'
 import { useKeepAliveGuard } from './use-keep-alive-guard'
 
 const metaKeys = { keepKey: 'keep', noKeepKey: 'noKeep' }
@@ -76,9 +77,59 @@ describe('useKeepAliveGuard', () => {
     const { add, remove } = installSpiedGuard(router)
 
     await router.push('/c')
+    await router.push('/a')
+    add.mockClear()
+    remove.mockClear()
+    await router.push('/c')
     expect(remove).toHaveBeenCalledWith('PageC')
     expect(add).toHaveBeenCalledWith('PageC')
     expect(remove.mock.invocationCallOrder[0]).toBeLessThan(add.mock.invocationCallOrder[0]!)
+  })
+
+  it('每次导航只调用一次 filter', async () => {
+    const router = makeRouter()
+    const filter = vi.fn(() => true)
+    installSpiedGuard(router, { filter })
+
+    await router.push('/a')
+    expect(filter).toHaveBeenCalledTimes(1)
+  })
+
+  it('导航失败时不加入目标组件缓存，并恢复已移除的缓存', async () => {
+    const router = makeRouter()
+    const { add, remove } = installSpiedGuard(router)
+    let abort = false
+    router.beforeResolve(to => to.name === 'c' && abort ? false : undefined)
+
+    await router.push('/a')
+    await router.push('/c')
+    await router.push('/a')
+    add.mockClear()
+    remove.mockClear()
+    abort = true
+    await router.push('/c')
+
+    expect(router.currentRoute.value.name).toBe('a')
+    expect(remove).toHaveBeenCalledWith('PageC')
+    expect(add).toHaveBeenCalledWith('PageC')
+  })
+
+  it('使用真实唯一列表时导航失败也能恢复已移除的缓存', async () => {
+    const router = makeRouter()
+    const include = useUniqueList<string>()
+    useKeepAliveGuard(router, { include, metaKeys })
+    let abort = false
+    router.beforeResolve(to => to.name === 'c' && abort ? false : undefined)
+
+    await router.push('/c')
+    await router.push('/a')
+    expect(include.has('PageC')).toBe(true)
+
+    abort = true
+    await router.push('/c')
+
+    expect(router.currentRoute.value.name).toBe('a')
+    expect(include.has('PageC')).toBe(true)
   })
 
   it('meta[noKeepKey] 命中 from 路由名时清除缓存', async () => {
